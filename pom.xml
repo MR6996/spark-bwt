@@ -1,0 +1,235 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.randazzo.mario</groupId>
+	<artifactId>bwt</artifactId>
+	<version>0.0.1</version>
+
+	<name>SparkBWT</name>
+	<description></description>
+
+
+	<properties>
+		<native.path>./src/main/native/</native.path>
+	</properties>
+
+
+
+	<profiles>
+
+		<profile>
+			<id>windows</id>
+			<properties>
+				<os_name>win32</os_name>
+				<lib_name>sapartial.dll</lib_name>
+				<compiler>x86_64-w64-mingw32-g++</compiler>
+			</properties>
+		</profile>
+
+		<profile>
+			<id>Linux</id>
+			<properties>
+				<os_name>linux</os_name>
+				<lib_name>sapartial.so</lib_name>
+				<compiler>g++</compiler>
+			</properties>
+		</profile>
+
+	</profiles>
+
+
+
+
+	<dependencies>
+
+		<dependency>
+			<groupId>org.apache.spark</groupId>
+			<artifactId>spark-core_2.11</artifactId>
+			<version>2.2.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.scalanlp</groupId>
+			<artifactId>breeze_2.11</artifactId>
+			<version>0.13.2</version>
+		</dependency>
+
+	</dependencies>
+
+
+
+
+
+	<build>
+
+		<plugins>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.7</version>
+				
+				<executions>
+					<execution>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<exportAntProperties>true</exportAntProperties>
+							<target>
+								<property name="runtime_classpath"
+									refid="maven.compile.classpath" />
+								<exec executable="javah">
+									<arg value="-verbose" />
+									<arg value="-jni" />
+									<arg value="-cp" />
+									<arg value="${runtime_classpath}" />
+									<arg value="-o" />
+									<arg value="${project.basedir}/src/main/native/include/sa_partial.h" />
+									<arg value="com.randazzo.mario.sparkbwt.jni.SAPartial"/>
+								</exec>
+							</target>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>native-maven-plugin</artifactId>
+				<version>1.0-alpha-9</version>
+
+				<extensions>true</extensions>
+				<configuration>
+					<javahOS>${os_name}</javahOS>
+
+					<sources>
+						<source>
+							<directory>${native.path}</directory>
+							<fileNames>
+								<fileName>sa_partial.cpp</fileName>
+							</fileNames>
+						</source>
+						<source>
+							<directory>${native.path}/include</directory>
+							<directory>${native.path}/include/sais</directory>
+						</source>
+					</sources>
+					
+					<compilerProvider>generic-classic</compilerProvider>
+					<compilerExecutable>${compiler}</compilerExecutable>
+
+					<compilerStartOptions>
+						<compilerStartOption>-m64</compilerStartOption>
+						<compilerStartOption>-fpic</compilerStartOption>
+						<compilerStartOption>-Wall</compilerStartOption>
+						<compilerStartOption>-Wextra</compilerStartOption>
+						<compilerStartOption>-ansi</compilerStartOption>
+						<compilerStartOption>-g</compilerStartOption>
+						<compilerStartOption>-O3</compilerStartOption>
+					</compilerStartOptions>
+
+					<linkerOutputDirectory>target</linkerOutputDirectory>
+					<linkerExecutable>${compiler}</linkerExecutable>
+
+					<linkerStartOptions>
+						<linkerStartOption>-m64</linkerStartOption>
+						<linkerStartOption>-shared</linkerStartOption>
+					</linkerStartOptions>
+					
+					<linkerFinalName></linkerFinalName>
+
+					<linkerEndOptions>
+						<linkerEndOption>-L${native.path}include/sais</linkerEndOption>
+						<linkerEndOption>-lsais</linkerEndOption>
+						<linkerEndOption>-o ${project.basedir}/src/main/native/${lib_name}</linkerEndOption>
+					</linkerEndOptions>
+				</configuration>
+
+				<executions>
+					<execution>
+						<id>native-compile</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>initialize</goal>
+							<goal>compile</goal>
+							<goal>link</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.0</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
+
+		</plugins>
+
+		<pluginManagement>
+			<plugins>
+				<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											org.codehaus.mojo
+										</groupId>
+										<artifactId>
+											native-maven-plugin
+										</artifactId>
+										<versionRange>
+											[1.0-alpha-9,)
+										</versionRange>
+										<goals>
+											<goal>compile</goal>
+											<goal>initialize</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore></ignore>
+									</action>
+								</pluginExecution>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											org.apache.maven.plugins
+										</groupId>
+										<artifactId>
+											maven-antrun-plugin
+										</artifactId>
+										<versionRange>
+											[1.7,)
+										</versionRange>
+										<goals>
+											<goal>run</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore></ignore>
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
+
+</project>
