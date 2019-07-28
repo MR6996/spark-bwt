@@ -9,10 +9,10 @@ extern "C" {
 #endif
 /*
  * Class:     com_randazzo_mario_sparkbwt_jni_SAPartial
- * Method:    getPartialSA
+ * Method:    calculatePartialSA
  * Signature: ([I[I[II)V
  */
-JNIEXPORT void JNICALL Java_com_randazzo_mario_sparkbwt_jni_SAPartial_getPartialSA
+JNIEXPORT void JNICALL Java_com_randazzo_mario_sparkbwt_jni_SAPartial_calculatePartialSA
   (JNIEnv *, jclass, jintArray, jintArray, jintArray, jint);
 
 /*

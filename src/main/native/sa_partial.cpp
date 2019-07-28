@@ -1,6 +1,5 @@
 #include <ctime>
 #include <algorithm>
-#include <iostream>
 
 #include "sais/build/include/sais.h"
 #include "sais/build/include/lfs.h"
@@ -8,13 +7,14 @@
 
 #include "include/sa_partial.h"
 
-
+/**
+ * 	Stable sort aI array in bI array of size n with keys in {0,...,K} from in r
+ *
+ * */
 void radixPass(sa_int32_t* c, sa_int32_t* aI, sa_int32_t* bI,
 		sa_int32_t* r, sa_int32_t n, sa_int32_t K) {
 	for (sa_int32_t i = 0; i <= K; i++) c[i] = 0;     	// reset counters
-
 	for (sa_int32_t i = 0; i < n; i++) c[r[aI[i]]]++;	// count occurrences
-
 	for (sa_int32_t i = 0, sum = 0; i <= K; i++) {     // exclusive prefix sums
 		int t = c[i];
 		c[i] = sum;
@@ -25,6 +25,10 @@ void radixPass(sa_int32_t* c, sa_int32_t* aI, sa_int32_t* bI,
 		bI[c[r[aI[i]]]++] = aI[i];
 }
 
+/**
+ * 	Check if array a and array b are not equal.
+ *
+ * */
 bool isNotEqual(sa_int32_t* a, sa_int32_t* b, sa_int32_t n) {
 	for (sa_int32_t i = 0; i < n; i++)
 		if (a[i] != b[i])
@@ -33,6 +37,10 @@ bool isNotEqual(sa_int32_t* a, sa_int32_t* b, sa_int32_t n) {
 	return false;
 }
 
+/**
+ *
+ *
+ * */
 sa_int32_t assignNames(sa_int32_t* s, sa_int32_t* p, sa_int32_t* t, sa_int32_t sSize, sa_int32_t n, sa_int32_t K) {
 	sa_int32_t* keys = new sa_int32_t[n];
 	sa_int32_t* indices = new sa_int32_t[n];
@@ -41,9 +49,9 @@ sa_int32_t assignNames(sa_int32_t* s, sa_int32_t* p, sa_int32_t* t, sa_int32_t s
 	for (sa_int32_t i = 0; i < n; i++) indices[i] = i;
 
 	// find the maximum lenght of substrings
-	sa_int32_t lMax = sSize - p[n - 1], l;
+	sa_int32_t lMax = sSize - p[n - 1]+ 1, l;
 	for (sa_int32_t i = 1; i < n; i++) {
-		l = p[i] - p[i - 1];
+		l = p[i] - p[i - 1] + 1;
 		if (l > lMax)
 			lMax = l;
 	}
@@ -95,7 +103,7 @@ sa_int32_t assignNames(sa_int32_t* s, sa_int32_t* p, sa_int32_t* t, sa_int32_t s
 	return name;
 }
 
-JNIEXPORT void JNICALL Java_com_randazzo_mario_sparkbwt_jni_SAPartial_getPartialSA (
+JNIEXPORT void JNICALL Java_com_randazzo_mario_sparkbwt_jni_SAPartial_calculatePartialSA (
 		JNIEnv * env, jclass thiz, jintArray js, jintArray jp, jintArray jpsorted, jint K) {
 	sa_int32_t sSize = (sa_int32_t) env->GetArrayLength(js);
 	sa_int32_t pSize = (sa_int32_t) env->GetArrayLength(jp);
@@ -115,9 +123,9 @@ JNIEXPORT void JNICALL Java_com_randazzo_mario_sparkbwt_jni_SAPartial_getPartial
 		// construct the suffix array for t
 		sa_int32_t* tSA = new sa_int32_t[pSize];		// t suffix array
 		if (sais_i32(t, tSA, pSize, tK+1) != 0) {
-			fprintf(stderr, " Could not allocate memory.\n");
+			fprintf(stderr, "[sais] Could not allocate memory.\n");
 		}
-		for(int i = 0; i < pSize; i++) pSorted[tSA[i]] = p[i];
+		for(int i = 0; i < pSize; i++) pSorted[i] = p[tSA[i]];
 
 		delete[] tSA;
 	}
