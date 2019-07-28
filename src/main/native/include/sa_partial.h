@@ -10,18 +10,18 @@ extern "C" {
 /*
  * Class:     com_randazzo_mario_sparkbwt_jni_SAPartial
  * Method:    getPartialSA
- * Signature: ([I[I[I)V
+ * Signature: ([I[I[II)V
  */
 JNIEXPORT void JNICALL Java_com_randazzo_mario_sparkbwt_jni_SAPartial_getPartialSA
-  (JNIEnv *, jclass, jintArray, jintArray, jintArray);
+  (JNIEnv *, jclass, jintArray, jintArray, jintArray, jint);
 
 /*
  * Class:     com_randazzo_mario_sparkbwt_jni_SAPartial
  * Method:    calculateSA
- * Signature: ([I[I)V
+ * Signature: ([I[II)V
  */
 JNIEXPORT void JNICALL Java_com_randazzo_mario_sparkbwt_jni_SAPartial_calculateSA
-  (JNIEnv *, jclass, jintArray, jintArray);
+  (JNIEnv *, jclass, jintArray, jintArray, jint);
 
 #ifdef __cplusplus
 }

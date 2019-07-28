@@ -15,7 +15,7 @@ import com.randazzo.mario.sparkbwt.jni.SAPartial;
 
 public class Partial {
 
-	private static void radixPass(int[] a, int[] aI, int[] bI, int[] r, int n, int K) {
+	private static void radixPass(int[] aI, int[] bI, int[] r, int n, int K) {
 		// count occurrences
 		int[] c = new int[K + 1];              		// counter array
 		for (int i = 0; i <= K; i++) c[i] = 0;     	// reset counters
@@ -68,17 +68,15 @@ public class Partial {
 
 		// sort lexicographically substrings
 		for (int i = lMax - 1; i >= 0; i--) {
-			int j;
-			for (j = 0; j < n; j++)
+			for (int j = 0; j < n; j++)
 				if (p[j] + i < s.length)
 					keys[j] = s[p[j] + i];
 				else
 					keys[j] = 0;
 
-			radixPass(p, pIdx, pIdxSorted, keys, n, K);
+			radixPass(pIdx, pIdxSorted, keys, n, K);
 			if(i != 0 ) swap(pIdx, pIdxSorted);
 		}
-		
 
 		int name = 0;
 		int[] lastSubstring = new int[lMax], 
@@ -88,7 +86,7 @@ public class Partial {
 		for (int i = 0; i < n; i++) {
 			int k = 0;
 	
-			for (int j = p[i]; j < Math.min(p[i] + lMax, s.length); j++, k++)
+			for (int j = p[pIdxSorted[i]]; j < Math.min(p[pIdxSorted[i]] + lMax, s.length); j++, k++)
 				tmpSubstring[k] = s[j];
 
 			for (; k < lMax; k++)
@@ -106,7 +104,7 @@ public class Partial {
 	}
 
 	public static void calculateSAPartial(int[] s, int[] p, int [] pSorted) {
-		int[] t = new int[p.length];		// reducted string from s
+		int[] t = new int[p.length];		// Reduced string from s
 
 		int K = assignNames(s, p, t, 256);
 		
@@ -114,32 +112,35 @@ public class Partial {
 			for(int i = 0; i < p.length; i++) pSorted[t[i]-1] = p[i];
 		else {
 			int[] tSA = new int[p.length];		// t suffix array
-			SAPartial.calculateSA(t, tSA);
+			SAPartial.calculateSA(t, tSA, K+1);
 			for(int i = 0; i < p.length; i++) pSorted[tSA[i]] = p[i];
 		}
 	}
 
 	public static void main(String[] args) throws IOException, URISyntaxException {
 		URL path = SAPartial.class.getClassLoader().getResource("ecoli_genome.txt");
-
+		
 		byte[] sBytes = Files.readAllBytes(Paths.get(path.toURI()));
-
+		
+		int[] alphabet = new int[256];
+		alphabet[65] = 1;
+		alphabet[67] = 2;
+		alphabet[71] = 3;
+		alphabet[84] = 4;
 		int[] s = new int[sBytes.length];
-		for (int i = 0; i < s.length; i++)
-			s[i] = (int) sBytes[i];
-
-		List<Integer> pList = Stream.iterate(0, n -> n + 1).limit(sBytes.length)
-				.collect(Collectors.collectingAndThen(Collectors.toCollection(ArrayList::new), list -> {
-					Collections.shuffle(list);
-					return list;
-				})).subList(0, sBytes.length / 10);
+		for(int i = 0; i < s.length; i++) 
+			s[i] = alphabet[sBytes[i]];
+		
+		List<Integer> pList = Stream.iterate(0, n -> n+1).limit(sBytes.length).collect(Collectors.collectingAndThen(
+				Collectors.toCollection(ArrayList::new), 
+				list -> {Collections.shuffle(list); return list;})
+				).subList(0, sBytes.length/10);
 		Collections.sort(pList);
-
+		
 		int[] p = new int[pList.size()];
 		int[] pSorted = new int[p.length];
-		for (int i = 0; i < pList.size(); i++)
-			p[i] = pList.get(i);
-
+		for(int i = 0; i < pList.size(); i++) p[i] = pList.get(i);
+		
 		long start = System.currentTimeMillis();
 		calculateSAPartial(s, p, pSorted);
 		System.out.println("Time: " + (System.currentTimeMillis() - start)/1000.0 + " sec");

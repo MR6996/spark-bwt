@@ -9,11 +9,10 @@
 #include "include/sa_partial.h"
 
 
-void radixPass(sa_int32_t* a, sa_int32_t* aI, sa_int32_t* bI,
+void radixPass(sa_int32_t* c, sa_int32_t* aI, sa_int32_t* bI,
 		sa_int32_t* r, sa_int32_t n, sa_int32_t K) {
-	// count occurrences
-	sa_int32_t* c = new sa_int32_t[K + 1];              // counter array
 	for (sa_int32_t i = 0; i <= K; i++) c[i] = 0;     	// reset counters
+
 	for (sa_int32_t i = 0; i < n; i++) c[r[aI[i]]]++;	// count occurrences
 
 	for (sa_int32_t i = 0, sum = 0; i <= K; i++) {     // exclusive prefix sums
@@ -24,8 +23,6 @@ void radixPass(sa_int32_t* a, sa_int32_t* aI, sa_int32_t* bI,
 
 	for (sa_int32_t i = 0; i < n; i++)
 		bI[c[r[aI[i]]]++] = aI[i];
-
-	delete[] c;
 }
 
 bool isNotEqual(sa_int32_t* a, sa_int32_t* b, sa_int32_t n) {
@@ -52,19 +49,23 @@ sa_int32_t assignNames(sa_int32_t* s, sa_int32_t* p, sa_int32_t* t, sa_int32_t s
 	}
 
 	// sort lexicographically substrings
+	sa_int32_t* c = new sa_int32_t[K + 1];              // counter array
 	for (sa_int32_t i = lMax - 1; i >= 0; i--) {
-		sa_int32_t j;
-		for (j = 0; j < n; j++)
-			if (p[j] + i <sSize)
+		for (sa_int32_t j = 0; j < n; j++)
+			if (p[j] + i < sSize)
 				keys[j] = s[p[j] + i];
 			else
 				keys[j] = 0;
 
-		radixPass(p, indices, sortedIndices, keys, n, K);
+		radixPass(c, indices, sortedIndices, keys, n, K);
 		std::swap(indices, sortedIndices);
 	}
 
 	std::swap(indices, sortedIndices);
+
+	delete[] c;
+	delete[] keys;
+	delete[] indices;
 
 	sa_int32_t name = 0;
 	sa_int32_t* lastSubstring = new sa_int32_t[lMax],
@@ -73,7 +74,7 @@ sa_int32_t assignNames(sa_int32_t* s, sa_int32_t* p, sa_int32_t* t, sa_int32_t s
 
 	for (sa_int32_t i = 0; i < n; i++) {
 		sa_int32_t k = 0;
-		for (sa_int32_t j = p[i]; j < std::min(p[i] + lMax, sSize); j++, k++)
+		for (sa_int32_t j = p[sortedIndices[i]]; j < std::min(p[sortedIndices[i]] + lMax, sSize); j++, k++)
 			tmpSubstring[k] = s[j];
 
 		for (; k < lMax; k++)
@@ -87,8 +88,6 @@ sa_int32_t assignNames(sa_int32_t* s, sa_int32_t* p, sa_int32_t* t, sa_int32_t s
 		t[sortedIndices[i]] = name;
 	}
 
-	delete[] keys;
-	delete[] indices;
 	delete[] sortedIndices;
 	delete[] lastSubstring;
 	delete[] tmpSubstring;
@@ -97,7 +96,7 @@ sa_int32_t assignNames(sa_int32_t* s, sa_int32_t* p, sa_int32_t* t, sa_int32_t s
 }
 
 JNIEXPORT void JNICALL Java_com_randazzo_mario_sparkbwt_jni_SAPartial_getPartialSA (
-		JNIEnv * env, jclass thiz, jintArray js, jintArray jp, jintArray jpsorted) {
+		JNIEnv * env, jclass thiz, jintArray js, jintArray jp, jintArray jpsorted, jint K) {
 	sa_int32_t sSize = (sa_int32_t) env->GetArrayLength(js);
 	sa_int32_t pSize = (sa_int32_t) env->GetArrayLength(jp);
 
@@ -106,28 +105,21 @@ JNIEXPORT void JNICALL Java_com_randazzo_mario_sparkbwt_jni_SAPartial_getPartial
 	sa_int32_t* pSorted = reinterpret_cast<sa_int32_t*>(env->GetIntArrayElements(jpsorted, 0));	// input indices (for partial array)
 
 	sa_int32_t* t = new sa_int32_t[pSize];			// reducted string from s
-	sa_int32_t* tSA = new sa_int32_t[pSize];		// t suffix array
 
-	sa_int32_t K = assignNames(s, p, t, sSize, pSize, 256);
-
-	/*
-	 if((SA == NULL)) {
-	 fprintf(stderr, "Could not allocate memory.\n");
-
-	 return  env->NewStringUTF("ciao");
-	 }
-	 */
+	sa_int32_t tK = assignNames(s, p, t, sSize, pSize, (sa_int32_t)K);
 
 	// construct the suffix array for t
-	if(K == pSize)
+	if(tK == pSize)
 		for(int i = 0; i < pSize; i++) pSorted[t[i]-1] = p[i];
 	else {
 		// construct the suffix array for t
-		if (sais_i32(t, tSA, pSize, K) != 0) {
+		sa_int32_t* tSA = new sa_int32_t[pSize];		// t suffix array
+		if (sais_i32(t, tSA, pSize, tK+1) != 0) {
 			fprintf(stderr, " Could not allocate memory.\n");
 		}
-		std::cout << "asd";
 		for(int i = 0; i < pSize; i++) pSorted[tSA[i]] = p[i];
+
+		delete[] tSA;
 	}
 
 
@@ -135,7 +127,6 @@ JNIEXPORT void JNICALL Java_com_randazzo_mario_sparkbwt_jni_SAPartial_getPartial
 	env->ReleaseIntArrayElements(jp, reinterpret_cast<jint*>(p), 0);
 	env->ReleaseIntArrayElements(jpsorted, reinterpret_cast<jint*>(pSorted), 0);
 	delete[] t;
-	delete[] tSA;
 }
 
 JNIEXPORT void JNICALL Java_com_randazzo_mario_sparkbwt_jni_SAPartial_calculateSA
