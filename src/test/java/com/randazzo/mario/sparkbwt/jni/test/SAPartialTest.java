@@ -90,14 +90,14 @@ public class SAPartialTest {
 						ImmutablePair::getLeft
 					)
 			)
-			.forEach( (k, list) -> {
+			.forEach( (k, list) -> {			
 				int[] p = new int[list.size()];
 				int[] pSorted = new int[p.length];
 				for(int i = 0; i < list.size(); i++) p[i] = list.get(i).getRight();
 								
 				long start = System.currentTimeMillis();
 				SAPartial.calculatePartialSA(sInts, p, pSorted, 256);
-				System.out.println("Time: " + (System.currentTimeMillis() - start)/1000.0 + " sec");
+				System.out.println("Time ("+ p.length +" bytes): " + (System.currentTimeMillis() - start)/1000.0 + " sec");
 				
 				for(int i = 0; i < pSorted.length; i++) 
 					System.out.print(pSorted[i] + ", ");

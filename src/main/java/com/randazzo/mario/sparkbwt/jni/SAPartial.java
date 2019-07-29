@@ -16,10 +16,14 @@ public class SAPartial {
 	//Load shared library
 	static {
 		try {
-			NativeUtils.loadLibraryFromJar("/sapartial.dll");
-		} catch (IOException e) {
-			System.out.println("Can't load sapartial library!");
-			e.printStackTrace();
+			NativeUtils.loadLibraryFromJar("/sapartial.so");
+		} catch (IOException ex) {
+			try {
+				NativeUtils.loadLibraryFromJar("/sapartial.dll");
+			} catch (IOException e) {
+				System.out.println("Can't load sapartial library!");
+				e.printStackTrace();
+			}
 		}
 	}
 

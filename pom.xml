@@ -13,7 +13,7 @@
 
 
 	<properties>
-		<native.path>./src/main/native/</native.path>
+		<native.path>${project.basedir}/src/main/native</native.path>
 	</properties>
 
 
@@ -23,18 +23,22 @@
 		<profile>
 			<id>windows</id>
 			<properties>
-				<os_name>win32</os_name>
-				<lib_name>sapartial.dll</lib_name>
+				<os.name>win32</os.name>
+				<lib.name>sapartial.dll</lib.name>
 				<compiler>x86_64-w64-mingw32-g++</compiler>
+				<cmake.generator>"MinGW Makefiles"</cmake.generator>
+				<make>mingw32-make</make>
 			</properties>
 		</profile>
 
 		<profile>
 			<id>Linux</id>
 			<properties>
-				<os_name>linux</os_name>
-				<lib_name>sapartial.so</lib_name>
+				<os.name>linux</os.name>
+				<lib.name>sapartial.so</lib.name>
 				<compiler>g++</compiler>
+				<cmake.generator>"Unix Makefiles"</cmake.generator>
+				<make>make</make>
 			</properties>
 		</profile>
 
@@ -105,6 +109,22 @@
 										value="${project.basedir}/src/main/native/include/sa_partial.h" />
 									<arg value="com.randazzo.mario.sparkbwt.jni.SAPartial" />
 								</exec>
+								
+								<mkdir dir="${native.path}/sais/build"/>
+								
+								<exec executable="cmake">
+									<arg value="-DCMAKE_BUILD_TYPE='Release'" />
+									<arg value="-S" />
+									<arg value="${native.path}/sais/" />
+									<arg value="-B" />
+									<arg value="${native.path}/sais/build" />
+									<arg value="-G" />
+									<arg value="${cmake.generator}" />
+								</exec>
+								
+								<exec executable="${make}">
+									<arg value="${native.path}/sais/build" />
+								</exec>
 							</target>
 						</configuration>
 					</execution>
@@ -118,7 +138,7 @@
 
 				<extensions>true</extensions>
 				<configuration>
-					<javahOS>${os_name}</javahOS>
+					<javahOS>${os.name}</javahOS>
 
 					<sources>
 						<source>
@@ -129,7 +149,7 @@
 						</source>
 						<source>
 							<directory>${native.path}/include</directory>
-							<directory>${native.path}/include/sais</directory>
+							<directory>${native.path}/sais/build/include</directory>
 						</source>
 					</sources>
 
@@ -157,9 +177,9 @@
 					<linkerFinalName></linkerFinalName>
 
 					<linkerEndOptions>
-						<linkerEndOption>-L${native.path}include/sais</linkerEndOption>
+						<linkerEndOption>-L${native.path}/sais/build/lib</linkerEndOption>
 						<linkerEndOption>-lsais</linkerEndOption>
-						<linkerEndOption>-o ${project.basedir}/src/main/native/${lib_name}</linkerEndOption>
+						<linkerEndOption>-o ${project.basedir}/src/main/native/${lib.name}</linkerEndOption>
 					</linkerEndOptions>
 				</configuration>
 
