@@ -14,8 +14,6 @@ import breeze.numerics._
 import org.apache.spark.SparkContext
 import org.apache.spark.SparkConf
 
-import util.SuffixArray
-
 
 class BWT extends Serializable {
   

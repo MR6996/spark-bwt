@@ -3,3 +3,6 @@
 *.project
 *.classpath
 *.cache-main
+src/main/native/sais/build/
+*.dll
+*.cache-tests
