@@ -123,6 +123,7 @@
 								</exec>
 								
 								<exec executable="${make}">
+									<arg value="-C" />
 									<arg value="${native.path}/sais/build" />
 								</exec>
 							</target>

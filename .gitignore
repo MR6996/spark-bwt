@@ -6,3 +6,4 @@
 src/main/native/sais/build/
 *.dll
 *.cache-tests
+/bin/
