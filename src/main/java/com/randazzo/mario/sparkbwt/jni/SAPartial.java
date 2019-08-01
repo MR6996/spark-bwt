@@ -1,6 +1,9 @@
 package com.randazzo.mario.sparkbwt.jni;
 
 import java.io.IOException;
+import java.io.Serializable;
+
+import com.randazzo.mario.sparkbwt.util.Util;
 
 import cz.adamh.utils.NativeUtils;
 
@@ -11,7 +14,12 @@ import cz.adamh.utils.NativeUtils;
  * @author Mario Randazzo
  *
  */
-public class SAPartial {
+public class SAPartial implements Serializable {
+
+	/**
+	 * Generated serial version ID
+	 */
+	private static final long serialVersionUID = 5251326424419860278L;
 
 	//Load shared library
 	static {
@@ -36,6 +44,23 @@ public class SAPartial {
 	 * @param k
 	 */
 	public native static void calculatePartialSA(int[] s, int[] p, int[] pSorted, int k);
+	
+	
+	/**
+	 * 
+	 * 
+	 * @param s
+	 * @param p
+	 * @param k
+	 * @return
+	 */
+	public static int[] calculatePartialSA(String s, int[] p, int k) {
+		int[] pSorted = new int[p.length];
+		
+		calculatePartialSA(Util.str2array(s), p, pSorted, k);
+		
+		return pSorted;
+	}
 	
 	/**
 	 * 	Calculate the Suffix Array of string s in {0,...,k-1}, 

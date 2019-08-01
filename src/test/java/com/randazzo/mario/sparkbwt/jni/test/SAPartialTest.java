@@ -5,6 +5,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -12,55 +13,55 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import com.randazzo.mario.sparkbwt.BWT;
 import com.randazzo.mario.sparkbwt.jni.SAPartial;
+import com.randazzo.mario.sparkbwt.util.Util;
 
 /**
  * Test class for native method in {@link SAPartial} class.
+ * 
+ * See {@link BWT}}.
  * 
  * @author Mario Randazzo
  *
  */
 public class SAPartialTest {
-	
-	/*
-	 * 	Convert a int array to a string, each integer is interpreted as a char. 
-	 * 
-	 * @param s a int array
-	 * @return a string that represents s 
-	 */
-	private static String array2str(int[] s) {
-		StringBuilder builder = new StringBuilder();
+
+	private int k;
+	private int r;
+	private int alphaSize = 4;
+	private long maxValue;
+	private HashMap<Character, Integer> alpha;
+
+	public SAPartialTest(int k, int r) {
+		super();
+		this.k = k;
+		this.r = r;
 		
-		for(int i = 0; i < s.length; i++)
-			builder.append((char)s[i]);
+		maxValue = calcMaxValue();
 		
-		return builder.toString();
+		alpha = new HashMap<Character, Integer>();
+		alpha.put('A', 0);
+		alpha.put('C', 1);
+		alpha.put('G', 2);
+		alpha.put('T', 3);
 	}
-	
-	/*
-	 * 	Check if the suffixes indexed in partial array are sorted in ascendent order.
-	 * 
-	 * @param s a int array 
-	 * @param partial the partial array of s
-	 * @return true if all suffixes in partial are sorted, false otherwise.
-	 */
-	private static boolean check(String s, int[] partial) {
-		System.out.println("Test string: " + s + "\n");
-		
-		//for(int i = 0; i < partial.length; i++) 
-		//	System.out.println(test.substring(partial[i]));
-		
-		boolean isOk = true;
-		for(int i = 0; i < partial.length-1; i++) 
-			if(s.substring(partial[i]).compareTo(s.substring(partial[i+1])) > 0) {
-				System.out.println("Found suffix " + partial[i] + " and " + partial[i+1]);
-				System.out.println("S"+ partial[i] + " -> " + s.substring(partial[i]));
-				System.out.println("S"+ partial[i+1] + " -> " +s.substring(partial[i+1]));
-				isOk = false;
-			}
-		
-		return isOk;
+
+	private long calcMaxValue() {
+		long max = 0;
+		for (int i = k - 1; i >= 0; i--)
+			max = max + (alphaSize - 1) * (long) Math.pow(alphaSize, i);
+
+		return max;
 	}
-	
+
+	private long toRange(String s, int i) {
+		long value = 0;
+
+		for (int j = k - 1, l = i; j >= 0 && l < Math.min(i + k - 1, s.length() - 1); j--, l++)
+			value = value + alpha.get(s.charAt(l)) * (long) Math.pow(alphaSize, j);
+
+		return Math.round(value / (double) maxValue * (r - 1));
+	}
+
 	/**
 	 * 
 	 * 
@@ -70,42 +71,37 @@ public class SAPartialTest {
 	 */
 	public static void main(String[] args) throws IOException, URISyntaxException {
 		URL path = SAPartial.class.getClassLoader().getResource("test_genome.txt");
-		
+
 		byte[] sBytes = Files.readAllBytes(Paths.get(path.toURI()));
-		
+
 		int[] sInts = new int[sBytes.length];
-		for(int i = 0; i < sInts.length; i++) 
+		for (int i = 0; i < sInts.length; i++)
 			sInts[i] = sBytes[i];
-		
-		String sString = array2str(sInts);
-		
-		BWT util = new BWT();
-		
-		Stream.iterate(0, n -> n+1)
-			.limit(sBytes.length)
-			.map( (i) -> {
-				return new ImmutablePair<Long, Integer>(util.toRange(sString.substring(i, Math.min(i+3, sString.length())).toLowerCase()), i);
-			})
-			.collect(Collectors.groupingBy(
-						ImmutablePair::getLeft
-					)
-			)
-			.forEach( (k, list) -> {			
-				int[] p = new int[list.size()];
-				int[] pSorted = new int[p.length];
-				for(int i = 0; i < list.size(); i++) p[i] = list.get(i).getRight();
-								
-				long start = System.currentTimeMillis();
-				SAPartial.calculatePartialSA(sInts, p, pSorted, 256);
-				System.out.println("Time ("+ p.length +" bytes): " + (System.currentTimeMillis() - start)/1000.0 + " sec");
-				
-				for(int i = 0; i < pSorted.length; i++) 
-					System.out.print(pSorted[i] + ", ");
-				System.out.println("\n");
-				
-				System.out.println("Suffix array check: " + check(sString, pSorted) + "\n\n");				
-			});
-		
+
+		String sString = Util.array2str(sInts);
+
+		SAPartialTest test = new SAPartialTest(3, 4);
+
+		Stream.iterate(0, n -> n + 1).limit(sBytes.length).map((i) -> {
+			return new ImmutablePair<Long, Integer>(test.toRange(sString, i), i);
+		}).collect(Collectors.groupingBy(ImmutablePair::getLeft)).forEach((k, list) -> {
+			int[] p = new int[list.size()];
+			int[] pSorted = new int[p.length];
+			for (int i = 0; i < list.size(); i++)
+				p[i] = list.get(i).getRight();
+
+			long start = System.currentTimeMillis();
+			SAPartial.calculatePartialSA(sInts, p, pSorted, 256);
+			System.out.println(
+					"Time (" + p.length + " bytes): " + (System.currentTimeMillis() - start) / 1000.0 + " sec");
+
+			for (int i = 0; i < pSorted.length; i++)
+				System.out.print(pSorted[i] + ", ");
+			System.out.println("\n");
+
+			System.out.println("Suffix array check: " + Util.check(sString, pSorted) + "\n\n");
+		});
+
 	}
 
 }

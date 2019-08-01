@@ -7,6 +7,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#undef com_randazzo_mario_sparkbwt_jni_SAPartial_serialVersionUID
+#define com_randazzo_mario_sparkbwt_jni_SAPartial_serialVersionUID 5251326424419860278i64
 /*
  * Class:     com_randazzo_mario_sparkbwt_jni_SAPartial
  * Method:    calculatePartialSA
