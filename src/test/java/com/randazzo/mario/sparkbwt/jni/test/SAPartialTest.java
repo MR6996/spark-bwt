@@ -1,5 +1,10 @@
 package com.randazzo.mario.sparkbwt.jni.test;
 
+import com.randazzo.mario.sparkbwt.BWT;
+import com.randazzo.mario.sparkbwt.jni.SAPartial;
+import com.randazzo.mario.sparkbwt.util.Util;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -8,12 +13,6 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import org.apache.commons.lang3.tuple.ImmutablePair;
-
-import com.randazzo.mario.sparkbwt.BWT;
-import com.randazzo.mario.sparkbwt.jni.SAPartial;
-import com.randazzo.mario.sparkbwt.util.Util;
 
 /**
  * Test class for native method in {@link SAPartial} class.
@@ -95,8 +94,7 @@ public class SAPartialTest {
 			System.out.println(
 					"Time (" + p.length + " bytes): " + (System.currentTimeMillis() - start) / 1000.0 + " sec");
 
-			for (int i = 0; i < pSorted.length; i++)
-				System.out.print(pSorted[i] + ", ");
+            for (int value : pSorted) System.out.print(value + ", ");
 			System.out.println("\n");
 
 			System.out.println("Suffix array check: " + Util.check(sString, pSorted) + "\n\n");

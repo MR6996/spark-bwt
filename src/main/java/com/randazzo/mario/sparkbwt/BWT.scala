@@ -1,21 +1,15 @@
 package com.randazzo.mario.sparkbwt
 
-import java.io.BufferedWriter
-import java.io.FileWriter
+import java.io.{BufferedWriter, FileWriter}
+
+import breeze.numerics.{pow, round}
+import com.randazzo.mario.sparkbwt.jni.SAPartial
+import org.apache.spark.broadcast.Broadcast
+import org.apache.spark.{SparkConf, SparkContext}
 
 import scala.io.Source
 import scala.language.implicitConversions
 import scala.math.min
-
-import org.apache.spark.SparkConf
-import org.apache.spark.SparkContext
-import org.apache.spark.broadcast.Broadcast
-
-import com.randazzo.mario.sparkbwt.jni.SAPartial
-
-import breeze.linalg.linspace
-import breeze.numerics.pow
-import breeze.numerics.round
 
 /**
  *
@@ -25,19 +19,18 @@ import breeze.numerics.round
  */
 class BWT(r : Int, k : Int) extends Serializable {
 
-    var bS : Broadcast[String] = null
+    val maxValue: Long = calcMaxValue()
     val alphaSize = 4
-    val maxValue = calcMaxValue()
-    val alpha = Map('A' -> 0, 'C' -> 1, 'G' -> 2, 'T' -> 3)
-    val ranges = round(linspace(0, maxValue, r)).toArray
+    val alpha: Map[Char, Int] = Map('A' -> 0, 'C' -> 1, 'G' -> 2, 'T' -> 3)
+    var bS : Broadcast[String] = _
 
     implicit def int2Integer(v : Array[Int]) : Array[java.lang.Integer] = {
-        var tmp = new Array[java.lang.Integer](v.size)
+        val tmp = new Array[java.lang.Integer](v.length)
 
-        for (i <- 0 to v.size - 1)
+        for (i <- v.indices)
             tmp(i) = java.lang.Integer.valueOf(v(i))
 
-        return tmp
+        tmp
     }
 
     /**
@@ -50,22 +43,7 @@ class BWT(r : Int, k : Int) extends Serializable {
         for (i <- k - 1 to 0 by -1)
             max = max + (alphaSize - 1) * pow(alphaSize, i).toLong
 
-        return max;
-    }
-
-    /**
-     *	
-     *
-     * @param i index of the k-mer in s
-     * @return the value of i-th k-mer in {0,...,r-1} 
-     */
-    def toRange(i : Int) : Long = {
-        var value : Long = 0
-
-        for ((j, l) <- (k - 1 to 0 by -1) zip (i to min(i + k - 1, bS.value.length - 1)))
-            value = value + alpha(bS.value.charAt(l)) * pow(alphaSize, j).toLong
-
-        return round(value / maxValue.toDouble * (r - 1))
+        max
     }
 
     /**
@@ -88,12 +66,12 @@ class BWT(r : Int, k : Int) extends Serializable {
         val s = Source.fromFile(inputFilePath).getLines.next()
         bS = sc.broadcast(s)
 
-        val mappedSuffix = sc.parallelize(0 to bS.value.size - 1)
+        val mappedSuffix = sc.parallelize(0 until bS.value.length)
             .map(idx => ((toRange(idx), idx)))
-            .groupByKey(4)
+            .groupByKey()
             //.map({ case (k, iter) => ((k, iter.toList.sortWith(bS.value.substring(_) < bS.value.substring(_)))) })
             .map({ case (k, iter) => ((k, SAPartial.calculatePartialSA(bS.value, iter.toArray.sorted, 256))) })
-            .sortByKey(true, 4)
+            .sortByKey(ascending = true)
 
         var totalTime = System.currentTimeMillis() - start;
         println("Elapsed time: " + totalTime / 1000.0 + " Secs")
@@ -107,15 +85,30 @@ class BWT(r : Int, k : Int) extends Serializable {
         mappedSuffix.collect().foreach(t => (
             for (idx <- t._2) {
                 if (idx > 0) outStream.write(bS.value.charAt(idx - 1))
-                else outStream.write(bS.value.charAt(bS.value.size - 1))
+                else outStream.write(bS.value.charAt(bS.value.length - 1))
             }))
         outStream.close()
 
-        totalTime = System.currentTimeMillis() - start;
+        totalTime = System.currentTimeMillis() - start
         println("Elapsed time: " + totalTime / 1000.0 + " Secs")
 
         println("Saved on: " + outFile)
 
         sc.stop()
+    }
+
+    /**
+     *
+     *
+     * @param i index of the k-mer in s
+     * @return the value of i-th k-mer in {0,...,r-1}
+     */
+    def toRange(i : Int) : Long = {
+        var value : Long = 0
+
+        for ((j, l) <- (k - 1 to 0 by -1) zip (i to min(i + k - 1, bS.value.length - 1)))
+            value = value + alpha(bS.value.charAt(l)) * pow(alphaSize, j).toLong
+
+        round(value / maxValue.toDouble * (r - 1))
     }
 }

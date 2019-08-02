@@ -9,10 +9,12 @@
 	<version>0.0.1</version>
 
 	<name>SparkBWT</name>
-	<description></description>
+	<description>SparkBWT</description>
 
 
 	<properties>
+		<encoding>UTF-8</encoding>
+
 		<native.path>${project.basedir}/src/main/native</native.path>
 	</properties>
 
@@ -105,8 +107,7 @@
 									<arg value="-cp" />
 									<arg value="${runtime_classpath}" />
 									<arg value="-o" />
-									<arg
-										value="${project.basedir}/src/main/native/include/sa_partial.h" />
+									<arg value="${project.basedir}/src/main/native/include/sa_partial.h" />
 									<arg value="com.randazzo.mario.sparkbwt.jni.SAPartial" />
 								</exec>
 								
@@ -175,12 +176,12 @@
 						<linkerStartOption>-shared</linkerStartOption>
 					</linkerStartOptions>
 
-					<linkerFinalName></linkerFinalName>
+					<linkerFinalName>sapartial</linkerFinalName>
 
 					<linkerEndOptions>
 						<linkerEndOption>-L${native.path}/sais/build/lib</linkerEndOption>
 						<linkerEndOption>-lsais</linkerEndOption>
-						<linkerEndOption>-o ${project.basedir}/src/main/native/${lib.name}</linkerEndOption>
+						<linkerEndOption>-o ${project.basedir}/src/main/resources/${lib.name}</linkerEndOption>
 					</linkerEndOptions>
 				</configuration>
 
@@ -204,6 +205,20 @@
 					<source>1.8</source>
 					<target>1.8</target>
 				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>net.alchim31.maven</groupId>
+				<artifactId>scala-maven-plugin</artifactId>
+				<version>4.0.2</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>compile</goal>
+							<goal>testCompile</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 
 		</plugins>
