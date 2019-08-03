@@ -1,9 +1,12 @@
-/target/
 *.prefs
 *.project
 *.classpath
 *.cache-main
-src/main/native/sais/build/
 *.dll
+*.so
 *.cache-tests
 /bin/
+/.idea/
+/target/
+/src/main/native/sais/build/
+/src/main/native/include/

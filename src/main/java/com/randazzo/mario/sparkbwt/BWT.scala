@@ -4,8 +4,8 @@ import java.io.{BufferedWriter, FileWriter}
 
 import breeze.numerics.{pow, round}
 import com.randazzo.mario.sparkbwt.jni.SAPartial
+import org.apache.spark.SparkContext
 import org.apache.spark.broadcast.Broadcast
-import org.apache.spark.{SparkConf, SparkContext}
 
 import scala.io.Source
 import scala.language.implicitConversions
@@ -53,27 +53,29 @@ class BWT(r : Int, k : Int) extends Serializable {
      */
     def run(inputFilePath : String) {
 
-        val conf = new SparkConf().setAppName("BWT").setMaster("local[*]")
+        //val conf = new SparkConf().setAppName("BWT").setMaster("local[*]")
 
         //Get the spark context
-        //val sc = SparkContext.getOrCreate()
-        val sc = new SparkContext(conf)
-        sc.setLogLevel("ERROR")
+        val sc = SparkContext.getOrCreate()
+        //val sc = new SparkContext(conf)
+        //sc.setLogLevel("ERROR")
 
         var start = System.currentTimeMillis()
 
         //Get the input string from input file and broadcasts it.
-        val s = Source.fromFile(inputFilePath).getLines.next()
+        val source = Source.fromFile(inputFilePath)
+        val s = source.getLines.next()
+        source.close()
         bS = sc.broadcast(s)
 
         val mappedSuffix = sc.parallelize(0 until bS.value.length)
-            .map(idx => ((toRange(idx), idx)))
+            .map( idx => (toRange(idx), idx) )
             .groupByKey()
             //.map({ case (k, iter) => ((k, iter.toList.sortWith(bS.value.substring(_) < bS.value.substring(_)))) })
-            .map({ case (k, iter) => ((k, SAPartial.calculatePartialSA(bS.value, iter.toArray.sorted, 256))) })
+            .map({ case (k, iter) => (k, SAPartial.calculatePartialSA(bS.value, iter.toArray.sorted, 256)) })
             .sortByKey(ascending = true)
 
-        var totalTime = System.currentTimeMillis() - start;
+        var totalTime = System.currentTimeMillis() - start
         println("Elapsed time: " + totalTime / 1000.0 + " Secs")
 
 
@@ -83,10 +85,10 @@ class BWT(r : Int, k : Int) extends Serializable {
         val outFile = inputFilePath + ".bwt"
         val outStream = new BufferedWriter(new FileWriter(outFile))
         mappedSuffix.collect().foreach(t => (
-            for (idx <- t._2) {
+            for (idx <- t._2)
                 if (idx > 0) outStream.write(bS.value.charAt(idx - 1))
                 else outStream.write(bS.value.charAt(bS.value.length - 1))
-            }))
+            ))
         outStream.close()
 
         totalTime = System.currentTimeMillis() - start
@@ -111,4 +113,5 @@ class BWT(r : Int, k : Int) extends Serializable {
 
         round(value / maxValue.toDouble * (r - 1))
     }
+
 }

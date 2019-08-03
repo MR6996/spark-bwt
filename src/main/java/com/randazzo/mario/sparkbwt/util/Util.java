@@ -10,31 +10,30 @@ package com.randazzo.mario.sparkbwt.util;
 public class Util {
 	
 	/**
-	 * 	Convert a int array to a string, each integer is interpreted as a char. 
+	 * 	Convert an int array to a string, each integer is interpreted as a char.
 	 * 
 	 * @param s a int array
 	 * @return a string that represents s 
 	 */
 	public static String array2str(int[] s) {
 		StringBuilder builder = new StringBuilder();
-		
-		for(int i = 0; i < s.length; i++)
-			builder.append((char)s[i]);
+
+		for (int value : s) builder.append((char) value);
 		
 		return builder.toString();
 	}
 	
 	/**
+	 * 	Convert a string array to an int array, each char is interpreted as an int
 	 * 
-	 * 
-	 * @param str
-	 * @return
+	 * @param str a string
+	 * @return the integer array correspondent to str
 	 */
 	public static int[] str2array(String str) {
 		int[] result = new int[str.length()];
 		
 		for(int i = 0; i < str.length(); i++)
-			result[i] = (int)str.charAt(i);
+			result[i] = str.charAt(i);
 		
 		return result;
 	}

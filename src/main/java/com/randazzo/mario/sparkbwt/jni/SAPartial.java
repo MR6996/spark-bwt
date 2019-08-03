@@ -1,11 +1,10 @@
 package com.randazzo.mario.sparkbwt.jni;
 
+import com.randazzo.mario.sparkbwt.util.Util;
+import cz.adamh.utils.NativeUtils;
+
 import java.io.IOException;
 import java.io.Serializable;
-
-import com.randazzo.mario.sparkbwt.util.Util;
-
-import cz.adamh.utils.NativeUtils;
 
 /**
  * 	This class provide a JNI for the functions that calculate 
@@ -24,24 +23,27 @@ public class SAPartial implements Serializable {
 	//Load shared library
 	static {
 		try {
-			NativeUtils.loadLibraryFromJar("/sapartial.so");
-		} catch (IOException ex) {
-			try {
+			String os = System.getProperty("os.name").toLowerCase();
+
+			if(os.contains("win"))
 				NativeUtils.loadLibraryFromJar("/sapartial.dll");
-			} catch (IOException e) {
-				System.out.println("Can't load sapartial library!");
-				e.printStackTrace();
-			}
+			else if(os.contains("nix"))
+				NativeUtils.loadLibraryFromJar("/sapartial.so");
+			else
+				System.out.println("Can't load sapartial library. Can't detect OS.");
+		} catch (IOException e) {
+			System.out.println("Can't load sapartial library. I/O Error.");
+			e.printStackTrace();
 		}
 	}
 
 	/**
 	 * 
-	 * 
-	 * @param s
+	 *
+	 * @param s a string
 	 * @param p
 	 * @param pSorted
-	 * @param k
+	 * @param k the size of the alphabet of s
 	 */
 	public native static void calculatePartialSA(int[] s, int[] p, int[] pSorted, int k);
 	
@@ -49,9 +51,9 @@ public class SAPartial implements Serializable {
 	/**
 	 * 
 	 * 
-	 * @param s
+	 * @param s a string
 	 * @param p
-	 * @param k
+	 * @param k the size of the alphabet of s
 	 * @return
 	 */
 	public static int[] calculatePartialSA(String s, int[] p, int k) {

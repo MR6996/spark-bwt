@@ -5,7 +5,7 @@
 #include "sais/build/include/lfs.h"
 #include "sais/build/include/sais_config.h"
 
-#include "include/sa_partial.h"
+#include "include/com_randazzo_mario_sparkbwt_jni_SAPartial.h"
 
 /**
  * 	Stable sort aI array in bI array of size n with keys in {0,...,K} from in r

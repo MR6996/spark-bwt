@@ -1,6 +1,5 @@
 package com.randazzo.mario.sparkbwt.jni.test;
 
-import com.randazzo.mario.sparkbwt.BWT;
 import com.randazzo.mario.sparkbwt.jni.SAPartial;
 import com.randazzo.mario.sparkbwt.util.Util;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -37,7 +36,7 @@ public class SAPartialTest {
 		
 		maxValue = calcMaxValue();
 		
-		alpha = new HashMap<Character, Integer>();
+		alpha = new HashMap<>();
 		alpha.put('A', 0);
 		alpha.put('C', 1);
 		alpha.put('G', 2);
@@ -69,7 +68,7 @@ public class SAPartialTest {
 	 * @throws URISyntaxException
 	 */
 	public static void main(String[] args) throws IOException, URISyntaxException {
-		URL path = SAPartial.class.getClassLoader().getResource("test_genome.txt");
+		URL path = SAPartial.class.getClassLoader().getResource("ecoli_genome.txt");
 
 		byte[] sBytes = Files.readAllBytes(Paths.get(path.toURI()));
 
@@ -79,27 +78,32 @@ public class SAPartialTest {
 
 		String sString = Util.array2str(sInts);
 
-		SAPartialTest test = new SAPartialTest(3, 4);
+		for(int nPartition = 2; nPartition < 120; nPartition+=2) {
+			System.out.println("[+] Number of partitions: " + nPartition);
+			SAPartialTest test = new SAPartialTest(7, nPartition);
 
-		Stream.iterate(0, n -> n + 1).limit(sBytes.length).map((i) -> {
-			return new ImmutablePair<Long, Integer>(test.toRange(sString, i), i);
-		}).collect(Collectors.groupingBy(ImmutablePair::getLeft)).forEach((k, list) -> {
-			int[] p = new int[list.size()];
-			int[] pSorted = new int[p.length];
-			for (int i = 0; i < list.size(); i++)
-				p[i] = list.get(i).getRight();
+			Stream.iterate(0, n -> n + 1).limit(sBytes.length).map((i) -> {
+				return new ImmutablePair<Long, Integer>(test.toRange(sString, i), i);
+			}).collect(Collectors.groupingBy(ImmutablePair::getLeft)).forEach((k, list) -> {
+				int[] p = new int[list.size()];
+				int[] pSorted = new int[p.length];
+				for (int i = 0; i < list.size(); i++)
+					p[i] = list.get(i).getRight();
 
-			long start = System.currentTimeMillis();
-			SAPartial.calculatePartialSA(sInts, p, pSorted, 256);
-			System.out.println(
-					"Time (" + p.length + " bytes): " + (System.currentTimeMillis() - start) / 1000.0 + " sec");
+				long start = System.currentTimeMillis();
+				SAPartial.calculatePartialSA(sInts, p, pSorted, 256);
+				System.out.println(
+						"\tTime (" + p.length + " bytes): " + (System.currentTimeMillis() - start) / 1000.0 + " sec");
 
-            for (int value : pSorted) System.out.print(value + ", ");
+				/*for (int value : pSorted) System.out.print(value + ", ");
+				System.out.println("\n");
+
+				System.out.println("Suffix array check: " + Util.check(sString, pSorted) + "\n\n");*/
+			});
+
+
 			System.out.println("\n");
-
-			System.out.println("Suffix array check: " + Util.check(sString, pSorted) + "\n\n");
-		});
-
+		}
 	}
 
 }
