@@ -1,6 +1,5 @@
-package com.randazzo.mario.sparkbwt.jni.test;
+package com.randazzo.mario.sparkbwt.jni;
 
-import com.randazzo.mario.sparkbwt.jni.SAPartial;
 import com.randazzo.mario.sparkbwt.util.Util;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
@@ -16,7 +15,7 @@ import java.util.stream.Stream;
 /**
  * Test class for native method in {@link SAPartial} class.
  * 
- * See {@link BWT}}.
+ * See {@link com.randazzo.mario.sparkbwt.BWT}}.
  * 
  * @author Mario Randazzo
  *
@@ -70,6 +69,7 @@ public class SAPartialTest {
 	public static void main(String[] args) throws IOException, URISyntaxException {
 		URL path = SAPartial.class.getClassLoader().getResource("ecoli_genome.txt");
 
+		assert path != null;
 		byte[] sBytes = Files.readAllBytes(Paths.get(path.toURI()));
 
 		int[] sInts = new int[sBytes.length];

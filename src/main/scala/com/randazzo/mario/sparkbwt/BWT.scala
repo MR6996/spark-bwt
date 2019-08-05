@@ -4,8 +4,8 @@ import java.io.{BufferedWriter, FileWriter}
 
 import breeze.numerics.{pow, round}
 import com.randazzo.mario.sparkbwt.jni.SAPartial
-import org.apache.spark.SparkContext
 import org.apache.spark.broadcast.Broadcast
+import org.apache.spark.{SparkConf, SparkContext}
 
 import scala.io.Source
 import scala.language.implicitConversions
@@ -19,9 +19,11 @@ import scala.math.min
  */
 class BWT(r : Int, k : Int) extends Serializable {
 
+    val alphaSize = 5
+    val alpha: Map[Char, Int] = Map('$' -> 0,
+                                    'a' -> 1, 'c' -> 2, 'g' -> 3, 't' -> 4,
+                                    'A' -> 1, 'C' -> 2, 'G' -> 3, 'T' -> 4)
     val maxValue: Long = calcMaxValue()
-    val alphaSize = 4
-    val alpha: Map[Char, Int] = Map('A' -> 0, 'C' -> 1, 'G' -> 2, 'T' -> 3)
     var bS : Broadcast[String] = _
 
     implicit def int2Integer(v : Array[Int]) : Array[java.lang.Integer] = {
@@ -53,27 +55,27 @@ class BWT(r : Int, k : Int) extends Serializable {
      */
     def run(inputFilePath : String) {
 
-        //val conf = new SparkConf().setAppName("BWT").setMaster("local[*]")
+        val conf = new SparkConf().setAppName("BWT").setMaster("local[*]")
 
         //Get the spark context
-        val sc = SparkContext.getOrCreate()
-        //val sc = new SparkContext(conf)
-        //sc.setLogLevel("ERROR")
+        //val sc = SparkContext.getOrCreate()
+        val sc = new SparkContext(conf)
+        sc.setLogLevel("ERROR")
 
         var start = System.currentTimeMillis()
 
         //Get the input string from input file and broadcasts it.
         val source = Source.fromFile(inputFilePath)
-        val s = source.getLines.next()
+        val s = source.getLines.next() + "$"
         source.close()
         bS = sc.broadcast(s)
 
         val mappedSuffix = sc.parallelize(0 until bS.value.length)
-            .map( idx => (toRange(idx), idx) )
-            .groupByKey()
-            //.map({ case (k, iter) => ((k, iter.toList.sortWith(bS.value.substring(_) < bS.value.substring(_)))) })
-            .map({ case (k, iter) => (k, SAPartial.calculatePartialSA(bS.value, iter.toArray.sorted, 256)) })
-            .sortByKey(ascending = true)
+          .map(idx => ( toRange(idx), idx) )
+          .groupByKey()
+          //.map({ case (k, iter) => ((k, iter.toList.sortWith(bS.value.substring(_) < bS.value.substring(_)))) })
+          .map({ case (k, iter) => (k, SAPartial.calculatePartialSA(bS.value, iter.toArray.sorted, 256)) })
+          .sortByKey(ascending = true)
 
         var totalTime = System.currentTimeMillis() - start
         println("Elapsed time: " + totalTime / 1000.0 + " Secs")
@@ -85,10 +87,10 @@ class BWT(r : Int, k : Int) extends Serializable {
         val outFile = inputFilePath + ".bwt"
         val outStream = new BufferedWriter(new FileWriter(outFile))
         mappedSuffix.collect().foreach(t => (
-            for (idx <- t._2)
-                if (idx > 0) outStream.write(bS.value.charAt(idx - 1))
-                else outStream.write(bS.value.charAt(bS.value.length - 1))
-            ))
+          for (idx <- t._2) {
+              if (idx > 0) outStream.write(bS.value.charAt(idx - 1))
+              else outStream.write(bS.value.charAt(bS.value.length - 1))
+          }))
         outStream.close()
 
         totalTime = System.currentTimeMillis() - start
@@ -113,5 +115,4 @@ class BWT(r : Int, k : Int) extends Serializable {
 
         round(value / maxValue.toDouble * (r - 1))
     }
-
 }
