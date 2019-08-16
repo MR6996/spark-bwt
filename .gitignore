@@ -5,6 +5,7 @@
 *.dll
 *.so
 *.cache-tests
+*.iml
 /bin/
 /.idea/
 /target/
