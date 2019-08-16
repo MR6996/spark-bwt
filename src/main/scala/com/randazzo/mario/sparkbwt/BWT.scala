@@ -51,6 +51,21 @@ class BWT(r : Int, k : Int) extends Serializable {
     /**
      *
      *
+     * @param i index of the k-mer in s
+     * @return the value of i-th k-mer in {0,...,r-1}
+     */
+    def toRange(i : Int) : Long = {
+        var value : Long = 0
+
+        for ((j, l) <- (k - 1 to 0 by -1) zip (i to min(i + k - 1, bS.value.length - 1)))
+            value = value + alpha(bS.value.charAt(l)) * pow(alphaSize, j).toLong
+
+        round(value / maxValue.toDouble * (r - 1))
+    }
+
+    /**
+     *
+     *
      * @param inputFilePath the path of the file that contains input string.
      */
     def run(inputFilePath : String) {
@@ -101,18 +116,5 @@ class BWT(r : Int, k : Int) extends Serializable {
         sc.stop()
     }
 
-    /**
-     *
-     *
-     * @param i index of the k-mer in s
-     * @return the value of i-th k-mer in {0,...,r-1}
-     */
-    def toRange(i : Int) : Long = {
-        var value : Long = 0
 
-        for ((j, l) <- (k - 1 to 0 by -1) zip (i to min(i + k - 1, bS.value.length - 1)))
-            value = value + alpha(bS.value.charAt(l)) * pow(alphaSize, j).toLong
-
-        round(value / maxValue.toDouble * (r - 1))
-    }
 }
