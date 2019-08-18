@@ -3,8 +3,7 @@ package com.randazzo.mario.sparkbwt;
 import org.apache.commons.cli.*;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.Objects;
@@ -91,24 +90,17 @@ public class SparkBWTCli {
         PrintWriter writer = new PrintWriter(System.out);
 
         HelpFormatter formatter = new HelpFormatter();
-        if(message != null)
-            formatter.printWrapped(writer, 80, "SPARK BWT Version 0.1.0\n" + message + "\n");
-        else {
-            try {
-                BufferedReader reader = new BufferedReader(new FileReader(
-                        Objects.requireNonNull(
-                                SparkBWTCli.class.getClassLoader().getResource("logo.txt")).getFile()));
 
-                String logo = reader.lines().collect(Collectors.joining("\n"));
-                formatter.printWrapped(writer, 80, logo);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
-        }
+        BufferedReader reader = new BufferedReader( new InputStreamReader(
+                Objects.requireNonNull(SparkBWTCli.class.getClassLoader().getResourceAsStream("logo.txt"))));
 
-        formatter.printUsage(writer, 80, "spark-bwt [Options] [File]");
+        String logo = reader.lines().collect(Collectors.joining("\n"));
+        formatter.printWrapped(writer, 80, logo +  (message != null ? "\n\n"+message+"\n\n" : "\n\n") );
+
+        formatter.printUsage(writer, 80, "spark-submit spark-bwt.jar [Options] [File]");
         formatter.printOptions(writer, 80, this.opts, 2, 12);
 
+        writer.print("\n\n");
         writer.flush();
     }
 
