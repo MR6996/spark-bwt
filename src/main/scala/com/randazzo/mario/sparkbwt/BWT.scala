@@ -2,14 +2,13 @@ package com.randazzo.mario.sparkbwt
 
 import java.io.{BufferedWriter, FileWriter}
 
-import breeze.numerics.{pow, round}
 import com.randazzo.mario.sparkbwt.jni.SAPartial
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.{SparkConf, SparkContext}
 
 import scala.io.Source
 import scala.language.implicitConversions
-import scala.math.min
+import scala.math.{min, pow, round}
 
 /**
  *

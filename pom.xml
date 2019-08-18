@@ -14,6 +14,7 @@
 
 	<properties>
 		<encoding>UTF-8</encoding>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<native.path>${project.basedir}/src/main/native</native.path>
 	</properties>
@@ -78,9 +79,9 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.scalanlp</groupId>
-			<artifactId>breeze_2.11</artifactId>
-			<version>0.13.2</version>
+			<groupId>org.json4s</groupId>
+			<artifactId>json4s-core_2.11</artifactId>
+			<version>3.6.7</version>
 		</dependency>
 
 		<dependency>
@@ -97,6 +98,7 @@
 
 		<plugins>
 
+			<!-- antrun : native-clean and sais buil -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-antrun-plugin</artifactId>
@@ -150,6 +152,7 @@
 				</executions>
 			</plugin>
 
+			<!-- native : sapartial build -->
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>native-maven-plugin</artifactId>
@@ -215,10 +218,30 @@
 				</executions>
 			</plugin>
 
+			<!-- resources : re-copy resources after native compile -->
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>3.1.0</version>
+				<executions>
+					<execution>
+						<id>re-copy-resources</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>resources</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- scala : -->
 			<plugin>
 				<groupId>net.alchim31.maven</groupId>
 				<artifactId>scala-maven-plugin</artifactId>
 				<version>4.0.2</version>
+				<configuration>
+					<scalaCompatVersion>2.11.8</scalaCompatVersion>
+					<scalaVersion>2.11.8</scalaVersion>
+				</configuration>
 				<executions>
 					<execution>
 						<id>scala-compile-first</id>
@@ -238,6 +261,7 @@
 				</executions>
 			</plugin>
 
+			<!-- compiler : -->
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.8.0</version>
@@ -252,6 +276,7 @@
 				</configuration>
 			</plugin>
 
+			<!-- shade :  -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
@@ -263,6 +288,7 @@
 							<goal>shade</goal>
 						</goals>
 						<configuration>
+							<!-- Include jar -->
 							<artifactSet>
 								<includes>
 									<include>com.github.adamheinrich:native-utils</include>
@@ -271,11 +297,16 @@
 							</artifactSet>
 
 							<transformers>
+								<!-- Set main class -->
 								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
 									<mainClass>com.randazzo.mario.sparkbwt.SparkBWT</mainClass>
 								</transformer>
+								<!-- Avoid LICENSE file duplicate -->
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer">
+								</transformer>
 							</transformers>
 
+							<!-- Relocation for resolve compflict for commons-cli -->
 							<relocations>
 								<relocation>
 									<pattern>org.apache.commons.cli</pattern>
