@@ -21,12 +21,9 @@ public class SparkBWT {
 
             if (cli.isHelp())
                 cli.printHelpMessage();
-            else {
-                String inputPath = cli.getInputPath();
+            else
+                cli.getBuiltBWT().run();
 
-                BWT bwt = new BWT(4, cli.getK());
-                bwt.run(inputPath);
-            }
         } catch (MissingOptionException e) {
             cli.printHelpMessage("Missing parameter.");
         } catch (ParseException | IllegalArgumentException e) {

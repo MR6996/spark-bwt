@@ -21,12 +21,10 @@ public class SparkBWTCli {
     private static final String HELP_OPT = "h";
     private static final String OUTPUT_OPT = "o";
     private static final String K_LENGHT_OPT = "k";
-    private static final String K_LENGHT_OPT_DEFAULT = "3";
 
-    private boolean help = false;
-    private String outputFilename;
-    private int k;
+    private boolean help;
 
+    private BWTBuilder bwtBuilder;
     private CommandLine cmd;
     private Options opts;
 
@@ -49,7 +47,7 @@ public class SparkBWTCli {
                 .longOpt("output")
                 .hasArg(true)
                 .required(false)
-                .desc("Specify the output filename")
+                .desc("Specify the output filename. Default is <input_filename>.bwt")
                 .argName("filename")
                 .build();
         opts.addOption(outputOpt);
@@ -69,15 +67,34 @@ public class SparkBWTCli {
         setupOption();
     }
 
-    private void setupOption() throws IllegalArgumentException {
+    /**
+     *  Set bwtBuilder from parsed options.
+     *
+     * @throws IllegalArgumentException if some option have a not valid argument
+     * @throws MissingOptionException if the inputFilePath is no specified
+     */
+    private void setupOption() throws IllegalArgumentException, MissingOptionException {
+        bwtBuilder = new BWTBuilder(getInputPath());
+
         if(cmd.hasOption(HELP_OPT))
             help = true;
         else if(cmd.hasOption(OUTPUT_OPT))
-            outputFilename = cmd.getOptionValue(OUTPUT_OPT, null);
+            bwtBuilder.setOutputFilePath(cmd.getOptionValue(OUTPUT_OPT));
         else if(cmd.hasOption(K_LENGHT_OPT)) {
-            k = Integer.parseInt(cmd.getOptionValue(K_LENGHT_OPT, K_LENGHT_OPT_DEFAULT));
-            if(k < 1) throw new IllegalArgumentException("k must be positive.");
+            bwtBuilder.setK(Integer.parseInt(cmd.getOptionValue(K_LENGHT_OPT)));
         }
+    }
+
+    /**
+     *  Get the input filename from command line arguments.
+     *
+     * @return the input filename
+     * @throws MissingOptionException if there isn't any arguments.
+     */
+    private String getInputPath() throws MissingOptionException {
+        List<String> argList = cmd.getArgList();
+        if(argList.size() == 0) throw new MissingOptionException("");
+        return argList.get(0);
     }
 
     /**
@@ -120,34 +137,14 @@ public class SparkBWTCli {
         return help;
     }
 
-    /**
-     *  Get the output filename, if specified.
-     *
-     * @return the output filename, or null if the option is unused.
-     */
-    public String getOutputFilename() {
-        return outputFilename;
-    }
 
     /**
-     *  Get the k length options.
+     *  Build a {@code BWT} with the option parsed from command line.
      *
-     * @return k length
+     * @return a {@code BWT}
      */
-    public int getK() {
-        return k;
-    }
-
-    /**
-     *  Get the input filename from command line arguments.
-     *
-     * @return the input filename
-     * @throws MissingOptionException if there isn't any arguments.
-     */
-    public String getInputPath() throws MissingOptionException {
-        List<String> argList = cmd.getArgList();
-        if(argList.size() == 0) throw new MissingOptionException("");
-        return argList.get(0);
+    public BWT getBuiltBWT() {
+        return bwtBuilder.build();
     }
 
 }

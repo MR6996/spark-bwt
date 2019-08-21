@@ -6,11 +6,11 @@ import scala.io.Source
 object BWTTest {
 
     def main(args: Array[String]) {
-        val bwt = new BWT(4, 3)
-
         Seq("/test_genome.txt", "/ecoli_genome.txt").foreach( file => {
-            val path = getClass.getResource(file).getPath
-            bwt.run(path)
+            val path = getClass.getResource(file).getFile
+            val bwt = new BWTBuilder(path).build
+
+            bwt.run()
             println("Checking inverse bwt...")
             println("Check [" + file + "]: " + checkBWT(path))
         })
@@ -57,7 +57,7 @@ object BWTTest {
         var r = 0
         var currentChar = bwt(r)
 
-        while(currentChar != '$') {
+        while(currentChar != '\0') {
             s.append(currentChar)
             r = lf(r)
             currentChar = bwt(r)

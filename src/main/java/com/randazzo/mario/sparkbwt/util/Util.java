@@ -37,7 +37,17 @@ public class Util {
 		
 		return result;
 	}
-	
+
+	/**
+	 * 	Return the last element of an array.
+	 *
+	 * @param v a String array
+	 * @return the last element of v
+	 */
+	public static String lastElement(String[] v) {
+		return v[v.length - 1];
+	}
+
 	/**
 	 * 	Check if the suffixes indexed in partial array are sorted in ascendent order.
 	 * 

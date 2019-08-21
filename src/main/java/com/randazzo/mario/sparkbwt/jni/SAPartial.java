@@ -2,6 +2,7 @@ package com.randazzo.mario.sparkbwt.jni;
 
 import com.randazzo.mario.sparkbwt.util.Util;
 import cz.adamh.utils.NativeUtils;
+import org.apache.commons.lang3.SystemUtils;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -23,16 +24,17 @@ public class SAPartial implements Serializable {
 	//Load shared library
 	static {
 		try {
-			String os = System.getProperty("os.name").toLowerCase();
 
-			if(os.contains("win"))
+			if(SystemUtils.IS_OS_WINDOWS)
 				NativeUtils.loadLibraryFromJar("/sapartial.dll");
-			else if(os.contains("nix"))
+			else if(SystemUtils.IS_OS_LINUX)
 				NativeUtils.loadLibraryFromJar("/sapartial.so");
 			else
-				System.out.println("Can't load sapartial library. Can't detect OS.");
+				throw new Exception("Can't load sapartial library. Error in OS detection.");
 		} catch (IOException e) {
 			System.out.println("Can't load sapartial library. I/O Error.");
+			e.printStackTrace();
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
