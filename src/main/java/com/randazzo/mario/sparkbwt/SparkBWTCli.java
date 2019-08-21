@@ -20,6 +20,8 @@ public class SparkBWTCli {
 
     private static final String HELP_OPT = "h";
     private static final String OUTPUT_OPT = "o";
+    private static final String START_INDEX_OPT = "s";
+    private static final String END_INDEX_OPT = "e";
     private static final String K_LENGHT_OPT = "k";
 
     private boolean help;
@@ -52,11 +54,32 @@ public class SparkBWTCli {
                 .build();
         opts.addOption(outputOpt);
 
+        Option startIndexOpt = Option.builder(START_INDEX_OPT)
+                .longOpt("start")
+                .hasArg(true)
+                .required(false)
+                .desc("Specify the index where the string in the input file begins. " +
+                        "Default value is 0.")
+                .argName("index")
+                .build();
+        opts.addOption(startIndexOpt);
+
+        Option endIndexOpt = Option.builder(END_INDEX_OPT)
+                .longOpt("end")
+                .hasArg(true)
+                .required(false)
+                .desc("Specify the index where the string in the input file ends, " +
+                        "Default value is -1 indicates the end.")
+                .argName("index")
+                .build();
+        opts.addOption(endIndexOpt);
+
         Option kLengthOpt = Option.builder(K_LENGHT_OPT)
                 .longOpt("kLength")
                 .hasArg(true)
                 .required(false)
-                .desc("Specify the the length of k-mers in the algorithm. Default value is 3, the value must be positive.")
+                .desc("Specify the length of k-mers in the algorithm. Default value is 3, " +
+                        "the value must be positive.")
                 .argName("lenght")
                 .build();
         opts.addOption(kLengthOpt);
@@ -71,18 +94,28 @@ public class SparkBWTCli {
      *  Set bwtBuilder from parsed options.
      *
      * @throws IllegalArgumentException if some option have a not valid argument
+     * @throws IndexOutOfBoundsException if some option have a not valid argument
      * @throws MissingOptionException if the inputFilePath is no specified
      */
-    private void setupOption() throws IllegalArgumentException, MissingOptionException {
+    private void setupOption() throws IllegalArgumentException,
+            MissingOptionException, IndexOutOfBoundsException {
         bwtBuilder = new BWTBuilder(getInputPath());
 
         if(cmd.hasOption(HELP_OPT))
             help = true;
-        else if(cmd.hasOption(OUTPUT_OPT))
+
+        if(cmd.hasOption(OUTPUT_OPT))
             bwtBuilder.setOutputFilePath(cmd.getOptionValue(OUTPUT_OPT));
-        else if(cmd.hasOption(K_LENGHT_OPT)) {
+
+        if(cmd.hasOption(START_INDEX_OPT))
+            bwtBuilder.setStartIndex(Integer.parseInt(cmd.getOptionValue(START_INDEX_OPT)));
+
+        if(cmd.hasOption(END_INDEX_OPT))
+            bwtBuilder.setEndIndex(Integer.parseInt(cmd.getOptionValue(END_INDEX_OPT)));
+
+        if(cmd.hasOption(K_LENGHT_OPT))
             bwtBuilder.setK(Integer.parseInt(cmd.getOptionValue(K_LENGHT_OPT)));
-        }
+
     }
 
     /**
