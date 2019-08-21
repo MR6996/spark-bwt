@@ -36,11 +36,13 @@ public class SparkBWTCli {
      *  Parse and set up the option parameters from the args passed by parameter.
      * Must be called after the constructor!
      *
-     * @param args command line arguments array
-     * @throws ParseException if there is an error with the arguments passed by parameter
-     * @throws IllegalArgumentException if there is an error with the option arguments
+     * @param args command line arguments array.
+     * @throws ParseException if there is an error with the arguments passed by parameter.
+     * @throws IllegalArgumentException if there is an error with the option arguments.
+     * @throws IndexOutOfBoundsException if there is an error with the option arguments.
      */
-    public void setup(String[] args) throws ParseException, IllegalArgumentException {
+    public void setup(String[] args) throws ParseException,
+            IllegalArgumentException, IndexOutOfBoundsException {
         opts = new Options();
 
         opts.addOption(HELP_OPT, "help", false, "Show this help message");
@@ -93,9 +95,9 @@ public class SparkBWTCli {
     /**
      *  Set bwtBuilder from parsed options.
      *
-     * @throws IllegalArgumentException if some option have a not valid argument
-     * @throws IndexOutOfBoundsException if some option have a not valid argument
-     * @throws MissingOptionException if the inputFilePath is no specified
+     * @throws IllegalArgumentException if some option have a not valid argument.
+     * @throws IndexOutOfBoundsException if some option have a not valid argument.
+     * @throws MissingOptionException if the inputFilePath is no specified.
      */
     private void setupOption() throws IllegalArgumentException,
             MissingOptionException, IndexOutOfBoundsException {
@@ -121,7 +123,7 @@ public class SparkBWTCli {
     /**
      *  Get the input filename from command line arguments.
      *
-     * @return the input filename
+     * @return the input filename.
      * @throws MissingOptionException if there isn't any arguments.
      */
     private String getInputPath() throws MissingOptionException {

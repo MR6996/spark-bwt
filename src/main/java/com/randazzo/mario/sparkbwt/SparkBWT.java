@@ -26,7 +26,7 @@ public class SparkBWT {
 
         } catch (MissingOptionException e) {
             cli.printHelpMessage("Missing parameter.");
-        } catch (ParseException | IllegalArgumentException e) {
+        } catch (ParseException | IllegalArgumentException | IndexOutOfBoundsException e) {
             Objects.requireNonNull(cli).printHelpMessage("Error in parsing command line arguments. " + e.getMessage());
         }
     }
