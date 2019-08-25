@@ -6,7 +6,7 @@
 
 	<groupId>com.randazzo.mario</groupId>
 	<artifactId>spark-bwt</artifactId>
-	<version>0.1.1</version>
+	<version>0.1.2</version>
 
 	<name>SparkBWT</name>
 	<description>SparkBWT</description>

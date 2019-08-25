@@ -20,6 +20,7 @@ public class SparkBWTCli {
 
     private static final String HELP_OPT = "h";
     private static final String OUTPUT_OPT = "o";
+    private static final String DIRECTORY_OPT = "d";
     private static final String START_INDEX_OPT = "s";
     private static final String END_INDEX_OPT = "e";
     private static final String K_LENGHT_OPT = "k";
@@ -66,6 +67,15 @@ public class SparkBWTCli {
                 .build();
         opts.addOption(startIndexOpt);
 
+        Option directoryOpt = Option.builder(DIRECTORY_OPT)
+                .longOpt("directory")
+                .hasArg(true)
+                .required(false)
+                .desc("Specify the working directory. Default is \"./\".")
+                .argName("path")
+                .build();
+        opts.addOption(directoryOpt);
+
         Option endIndexOpt = Option.builder(END_INDEX_OPT)
                 .longOpt("end")
                 .hasArg(true)
@@ -101,7 +111,12 @@ public class SparkBWTCli {
      */
     private void setupOption() throws IllegalArgumentException,
             MissingOptionException, IndexOutOfBoundsException {
-        bwtBuilder = new BWTBuilder(getInputPath());
+
+        if(cmd.hasOption(DIRECTORY_OPT))
+            bwtBuilder = new BWTBuilder(cmd.getOptionValue(DIRECTORY_OPT), getInputPath());
+        else
+            bwtBuilder = new BWTBuilder(getInputPath());
+
 
         if(cmd.hasOption(HELP_OPT))
             help = true;

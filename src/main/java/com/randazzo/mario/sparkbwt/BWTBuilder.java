@@ -5,6 +5,7 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.SparkContext;
 
 import java.io.File;
+import java.nio.file.Paths;
 
 /**
  *  Builder for class {@code BWT}.
@@ -19,6 +20,7 @@ public class BWTBuilder {
 
     private String inputFilePath;
     private String outputFilePath;
+    private String workingDirectory;
     private int startIdx;
     private int endIdx;
     private int k;
@@ -37,6 +39,7 @@ public class BWTBuilder {
 
         this.inputFilePath = inputFilePath;
         this.outputFilePath = inputFilePath + ".bwt";
+        this.workingDirectory = "./";
         this.startIdx = 0;
         this.endIdx = -1;
         this.k = 3;
@@ -45,6 +48,21 @@ public class BWTBuilder {
                 .setAppName("SparkBWT - " + Util.lastElement(inputFilePath.split("[\\\\/]")))
                 .setMaster("local[*]");
         this.sc = new SparkContext(conf);
+    }
+
+    /**
+     *  Build a Builder for {@code BWT} class from the input file specified and the working directory specified.
+     *
+     * @param workingDirectory a path to a directory.
+     * @param inputPath a path to the input file.
+     * @throws IllegalArgumentException if {@code workingDirectory} is not a directory.
+     */
+    public BWTBuilder(String workingDirectory, String inputPath) throws  IllegalArgumentException {
+        this(Paths.get(workingDirectory, inputPath).toString());
+
+        if( !new File(workingDirectory).isDirectory())
+            throw new IllegalArgumentException( workingDirectory + " is not a valid directory.");
+        this.workingDirectory = workingDirectory;
     }
 
     /**
@@ -109,6 +127,8 @@ public class BWTBuilder {
      * @return a {@code BWT} built from the option specified.
      */
     public BWT build() {
-        return new BWT(sc, 4, k, startIdx, endIdx, inputFilePath, outputFilePath);
+        return new BWT(sc, 4, k, startIdx, endIdx,
+                inputFilePath,
+                Paths.get(workingDirectory, outputFilePath).toString());
     }
 }
