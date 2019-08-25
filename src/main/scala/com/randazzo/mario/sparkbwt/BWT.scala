@@ -23,7 +23,7 @@ class BWT (sc: SparkContext,
 
         //Get the input string from input file and broadcasts it.
         val source = Source.fromFile(inputFilePath)
-            val s = source.getLines.next().substring(startIdx, endIdx) + "\0"
+        val s = source.getLines.next().substring(startIdx, endIdx) + "\0"
         source.close()
         bS = sc.broadcast(s)
 

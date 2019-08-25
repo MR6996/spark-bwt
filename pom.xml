@@ -104,7 +104,7 @@
 
 		<plugins>
 
-			<!-- antrun : native-clean and sais buil -->
+			<!-- antrun : native-clean and sais build -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-antrun-plugin</artifactId>

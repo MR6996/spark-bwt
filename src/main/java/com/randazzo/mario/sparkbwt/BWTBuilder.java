@@ -15,6 +15,8 @@ public class BWTBuilder {
 
     private final SparkContext sc;
 
+    private File inputFile;
+
     private String inputFilePath;
     private String outputFilePath;
     private int startIdx;
@@ -28,7 +30,9 @@ public class BWTBuilder {
      * @throws IllegalArgumentException if the inputFilePath are not valid.
      */
     public BWTBuilder(String inputFilePath) throws IllegalArgumentException{
-        if( !new File(inputFilePath).isFile())
+        inputFile = new File(inputFilePath);
+
+        if( !inputFile.isFile())
             throw  new IllegalArgumentException("File " + inputFilePath + " is not valid file!");
 
         this.inputFilePath = inputFilePath;
@@ -64,7 +68,8 @@ public class BWTBuilder {
      */
     public BWTBuilder setStartIndex(int idx) throws IndexOutOfBoundsException {
         if(idx < 0) throw new IndexOutOfBoundsException("Start index is negative!");
-        //TODO: Out of Uppper bound check
+        if(idx > inputFile.length())
+            throw new IndexOutOfBoundsException("Start index is not valid! It is greater than file size!");
         this.startIdx = idx;
         return this;
     }
@@ -79,7 +84,8 @@ public class BWTBuilder {
      */
     public BWTBuilder setEndIndex(int idx) throws IndexOutOfBoundsException {
         if(idx < 0) throw new IndexOutOfBoundsException("End index is negative!");
-        //TODO: Out of Uppper bound check
+        if(idx > inputFile.length())
+            throw new IndexOutOfBoundsException("End index is not valid! It is greater than file size!");
         this.endIdx = idx;
         return this;
     }
