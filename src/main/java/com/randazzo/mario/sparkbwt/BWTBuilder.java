@@ -1,6 +1,8 @@
 package com.randazzo.mario.sparkbwt;
 
 import com.randazzo.mario.sparkbwt.util.Util;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.spark.SparkConf;
 import org.apache.spark.SparkContext;
 
@@ -13,6 +15,8 @@ import java.nio.file.Paths;
  * @author Mario Randazzo
  */
 public class BWTBuilder {
+
+    private static final Log LOG  = LogFactory.getLog(BWTBuilder.class);
 
     private final SparkContext sc;
 
@@ -48,6 +52,8 @@ public class BWTBuilder {
                 .setAppName("SparkBWT - " + Util.lastElement(inputFilePath.split("[\\\\/]")))
                 .setMaster("local[*]");
         this.sc = new SparkContext(conf);
+
+        LOG.info("Initialized builder for: " + inputFilePath);
     }
 
     /**
@@ -63,6 +69,8 @@ public class BWTBuilder {
         if( !new File(workingDirectory).isDirectory())
             throw new IllegalArgumentException( workingDirectory + " is not a valid directory.");
         this.workingDirectory = workingDirectory;
+
+        LOG.info("Setting working directory: " + workingDirectory);
     }
 
     /**
@@ -72,6 +80,8 @@ public class BWTBuilder {
      * @return this builder.
      */
     public BWTBuilder setOutputFilePath(String outputFilePath) {
+        LOG.info("Setting output file path: " + outputFilePath);
+
         this.outputFilePath = outputFilePath;
         return this;
     }
@@ -85,6 +95,8 @@ public class BWTBuilder {
      * @throws IndexOutOfBoundsException if {@code idx} is negative.
      */
     public BWTBuilder setStartIndex(int idx) throws IndexOutOfBoundsException {
+        LOG.info("Setting start index: " + idx);
+
         if(idx < 0) throw new IndexOutOfBoundsException("Start index is negative!");
         if(idx > inputFile.length())
             throw new IndexOutOfBoundsException("Start index is not valid! It is greater than file size!");
@@ -101,6 +113,8 @@ public class BWTBuilder {
      * @throws IndexOutOfBoundsException if {@code idx} is negative.
      */
     public BWTBuilder setEndIndex(int idx) throws IndexOutOfBoundsException {
+        LOG.info("Setting end index: " + idx);
+
         if(idx < 0) throw new IndexOutOfBoundsException("End index is negative!");
         if(idx > inputFile.length())
             throw new IndexOutOfBoundsException("End index is not valid! It is greater than file size!");
@@ -116,6 +130,8 @@ public class BWTBuilder {
      * @throws IllegalArgumentException if k are not valid value, must be positive.
      */
     public BWTBuilder setK(int k) throws IllegalArgumentException {
+        LOG.info("Setting k value: " + k);
+
         if(k < 1)  throw new IllegalArgumentException("k must be positive.");
         this.k = k;
         return this;

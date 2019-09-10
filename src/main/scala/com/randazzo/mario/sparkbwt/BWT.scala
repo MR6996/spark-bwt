@@ -2,6 +2,7 @@ package com.randazzo.mario.sparkbwt
 
 import java.io.{BufferedWriter, FileWriter}
 
+import org.apache.commons.logging.LogFactory
 import org.apache.spark.SparkContext
 import org.apache.spark.broadcast.Broadcast
 
@@ -15,10 +16,12 @@ class BWT (sc: SparkContext,
 		   inputFilePath : String,
 		   outputFilePath : String) {
 
+	val LOG = LogFactory.getLog(getClass)
+
 	var bS : Broadcast[String] = _
 	var primitives : BWTPrimitives = _
 
-	def run()  {
+	def run() {
 		var start = System.currentTimeMillis()
 
 		//Get the input string from input file and broadcasts it.
@@ -40,7 +43,7 @@ class BWT (sc: SparkContext,
 		.sortByKey(ascending = true)
 
 		var totalTime = System.currentTimeMillis() - start
-		println("Elapsed time: " + totalTime / 1000.0 + " Secs")
+		LOG.info("Elapsed time: " + totalTime / 1000.0 + " Secs")
 
 
 		start = System.currentTimeMillis()
@@ -56,7 +59,7 @@ class BWT (sc: SparkContext,
 		outStream.close()
 
 		totalTime = System.currentTimeMillis() - start
-		println("Elapsed time: " + totalTime / 1000.0 + " Secs")
+		LOG.info("Elapsed time: " + totalTime / 1000.0 + " Secs")
 
 		sc.stop()
 	}
