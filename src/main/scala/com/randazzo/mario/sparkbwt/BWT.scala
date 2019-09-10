@@ -2,7 +2,7 @@ package com.randazzo.mario.sparkbwt
 
 import java.io.{BufferedWriter, FileWriter}
 
-import org.apache.commons.logging.LogFactory
+import org.apache.commons.logging.{Log, LogFactory}
 import org.apache.spark.SparkContext
 import org.apache.spark.broadcast.Broadcast
 
@@ -16,7 +16,7 @@ class BWT (sc: SparkContext,
 		   inputFilePath : String,
 		   outputFilePath : String) {
 
-	val LOG = LogFactory.getLog(getClass)
+	val LOG: Log = LogFactory.getLog(getClass)
 
 	var bS : Broadcast[String] = _
 	var primitives : BWTPrimitives = _
