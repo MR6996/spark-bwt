@@ -47,27 +47,5 @@ public class Util {
 	public static String lastElement(String[] v) {
 		return v[v.length - 1];
 	}
-
-	/**
-	 * 	Check if the suffixes indexed in partial array are sorted in ascendent order.
-	 * 
-	 * @param s a int array 
-	 * @param partial the partial array of s
-	 * @return true if all suffixes in partial are sorted, false otherwise.
-	 */
-	public static boolean check(String s, int[] partial) {
-		System.out.println("Test string: " + s + "\n");
-				
-		boolean isOk = true;
-		for(int i = 0; i < partial.length-1; i++) 
-			if(s.substring(partial[i]).compareTo(s.substring(partial[i+1])) > 0) {
-				System.out.println("Found suffix " + partial[i] + " and " + partial[i+1]);
-				System.out.println("S"+ partial[i] + " -> " + s.substring(partial[i]));
-				System.out.println("S"+ partial[i+1] + " -> " +s.substring(partial[i+1]));
-				isOk = false;
-			}
-		
-		return isOk;
-	}
 	
 }

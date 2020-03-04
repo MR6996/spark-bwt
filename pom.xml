@@ -96,6 +96,13 @@
 			<version>1.2.0</version>
 		</dependency>
 
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-engine</artifactId>
+			<version>5.4.2</version>
+			<scope>test</scope>
+		</dependency>
+
 	</dependencies>
 
 
@@ -312,7 +319,7 @@
 								</transformer>
 							</transformers>
 
-							<!-- Relocation for resolve compflict for commons-cli -->
+							<!-- Relocation for resolve conflict for commons-cli -->
 							<relocations>
 								<relocation>
 									<pattern>org.apache.commons.cli</pattern>
@@ -323,6 +330,16 @@
 						</configuration>
 					</execution>
 				</executions>
+			</plugin>
+
+			<!-- Junit -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>3.0.0-M3</version>
+				<configuration>
+					<skipTests>true</skipTests>
+				</configuration>
 			</plugin>
 
 		</plugins>
