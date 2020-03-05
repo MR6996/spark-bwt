@@ -43,7 +43,7 @@ public class BWTBuilder {
 
         this.inputFilePath = inputFilePath;
         this.outputFilePath = inputFilePath + ".bwt";
-        this.workingDirectory = "./";
+        this.workingDirectory = "";
         this.startIdx = 0;
         this.endIdx = -1;
         this.k = 3;

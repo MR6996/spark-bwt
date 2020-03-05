@@ -1,22 +1,23 @@
 package com.randazzo.mario.sparkbwt
 
+import org.junit.jupiter.api.Test
+
 import scala.collection.mutable
 import scala.io.Source
 
-object BWTTest {
+class BWTTest {
 
-    def main(args: Array[String]) {
-        Seq("/test_genome.txt", "/ecoli_genome.txt").foreach( file => {
-            val path = getClass.getResource(file).getFile
-            val bwt = new BWTBuilder(path).build
+    // Note: fix for windows version.
+    @Test
+    def run() {
+        val path = getClass.getResource("/test_genome.txt").getFile
+        val bwt = new BWTBuilder(path).build
 
-            bwt.run()
-            println("Checking inverse bwt...")
-            println("Check [" + file + "]: " + checkBWT(path))
-        })
+        bwt.run()
+        println("Checking inverse bwt...")
     }
 
-    def checkBWT(inputFilePath: String): Boolean = {
+    def checkBWT(inputFilePath: String) {
         var source = Source.fromFile(inputFilePath + ".bwt")
         val calculatedS = ibwt(source.getLines.next())
         source.close()
@@ -25,7 +26,7 @@ object BWTTest {
         val s = source.getLines.next()
         source.close()
 
-        s.equals(calculatedS)
+        assert(s.equals(calculatedS))
     }
 
     def ibwt(bwt: String): String = {
