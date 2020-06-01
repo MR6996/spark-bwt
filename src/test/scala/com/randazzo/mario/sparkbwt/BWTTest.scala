@@ -10,7 +10,7 @@ class BWTTest {
     // Note: fix for windows version.
     @Test
     def run() {
-        val path = getClass.getResource("/test_genome.txt").getFile
+        val path = getClass.getResource("/test.txt").getFile
         val bwt = new BWTBuilder(path).build
 
         bwt.run()

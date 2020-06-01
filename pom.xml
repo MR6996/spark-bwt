@@ -6,10 +6,10 @@
 
 	<groupId>com.randazzo.mario</groupId>
 	<artifactId>spark-bwt</artifactId>
-	<version>0.1.3</version>
+	<version>0.2.0</version>
 
 	<name>SparkBWT</name>
-	<description>SparkBWT</description>
+	<description>Burros-Wheeler transform calculation in Map-Reduce fashion.</description>
 
 
 	<properties>
@@ -18,35 +18,6 @@
 
 		<native.path>${project.basedir}/src/main/native</native.path>
 	</properties>
-
-
-
-	<profiles>
-
-		<profile>
-			<id>windows</id>
-			<properties>
-				<os.name>win32</os.name>
-				<lib.name>sapartial.dll</lib.name>
-				<compiler>x86_64-w64-mingw32-g++</compiler>
-				<cmake.generator>"MinGW Makefiles"</cmake.generator>
-				<make>mingw32-make</make>
-			</properties>
-		</profile>
-
-		<profile>
-			<id>linux</id>
-			<properties>
-				<os.name>linux</os.name>
-				<lib.name>sapartial.so</lib.name>
-				<compiler>g++</compiler>
-				<cmake.generator>Unix Makefiles</cmake.generator>
-				<make>make</make>
-			</properties>
-		</profile>
-
-	</profiles>
-
 
 
 	<repositories>
@@ -79,6 +50,12 @@
 		</dependency>
 
 		<dependency>
+			<groupId>org.apache.spark</groupId>
+			<artifactId>spark-sql_2.11</artifactId>
+			<version>2.3.3</version>
+		</dependency>
+
+		<dependency>
 			<groupId>org.json4s</groupId>
 			<artifactId>json4s-core_2.11</artifactId>
 			<version>3.6.7</version>
@@ -102,6 +79,12 @@
 			<version>5.4.2</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
 
 	</dependencies>
 
@@ -110,126 +93,6 @@
 	<build>
 
 		<plugins>
-
-			<!-- antrun : native-clean and sais build -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-antrun-plugin</artifactId>
-				<version>1.7</version>
-
-				<executions>
-					<execution>
-						<id>native-clean</id>
-						<phase>clean</phase>
-						<goals>
-							<goal>run</goal>
-						</goals>
-						<configuration>
-							<exportAntProperties>true</exportAntProperties>
-							<target>
-								<echo message = "Cleaning native code"/>
-								<delete dir="${project.basedir}/src/main/native/include" />
-								<delete dir="${project.basedir}/src/main/native/sais/build" />
-								<delete file="${project.basedir}/src/main/resources/${lib.name}" />
-							</target>
-
-						</configuration>
-					</execution>
-
-					<execution>
-						<id>sais-build</id>
-						<phase>generate-sources</phase>
-						<goals>
-							<goal>run</goal>
-						</goals>
-						<configuration>
-							<exportAntProperties>true</exportAntProperties>
-							<target>
-								<echo message = "Build sais library"/>
-								<mkdir dir="${native.path}/sais/build"/>
-
-								<exec dir="${native.path}/sais/build" executable="cmake">
-									<arg value="-DCMAKE_BUILD_TYPE='Release'" />
-									<arg value="-G" />
-									<arg value="${cmake.generator}" />
-									<arg value=".." />
-								</exec>
-
-								<exec executable="${make}">
-									<arg value="-C" />
-									<arg value="${native.path}/sais/build" />
-								</exec>
-							</target>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-
-			<!-- native : sapartial build -->
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>native-maven-plugin</artifactId>
-				<version>1.0-alpha-9</version>
-
-				<extensions>true</extensions>
-				<configuration>
-					<javahOS>${os.name}</javahOS>
-
-					<sources>
-						<source>
-							<directory>${native.path}</directory>
-							<fileNames>
-								<fileName>sa_partial.cpp</fileName>
-							</fileNames>
-						</source>
-						<source>
-							<directory>${native.path}/include</directory>
-							<directory>${native.path}/sais/build/include</directory>
-						</source>
-					</sources>
-
-					<compilerProvider>generic-classic</compilerProvider>
-					<compilerExecutable>${compiler}</compilerExecutable>
-
-					<compilerStartOptions>
-						<compilerStartOption>-m64</compilerStartOption>
-						<compilerStartOption>-fpic</compilerStartOption>
-						<compilerStartOption>-Wall</compilerStartOption>
-						<compilerStartOption>-Wextra</compilerStartOption>
-						<compilerStartOption>-ansi</compilerStartOption>
-						<compilerStartOption>-g</compilerStartOption>
-						<compilerStartOption>-O3</compilerStartOption>
-					</compilerStartOptions>
-
-					<linkerOutputDirectory>target</linkerOutputDirectory>
-					<linkerExecutable>${compiler}</linkerExecutable>
-
-					<linkerStartOptions>
-						<linkerStartOption>-m64</linkerStartOption>
-						<linkerStartOption>-shared</linkerStartOption>
-					</linkerStartOptions>
-
-					<linkerFinalName>sapartial</linkerFinalName>
-
-					<linkerEndOptions>
-						<linkerEndOption>-L${native.path}/sais/build/lib</linkerEndOption>
-						<linkerEndOption>-lsais</linkerEndOption>
-						<linkerEndOption>-o ${project.basedir}/src/main/resources/${lib.name}</linkerEndOption>
-					</linkerEndOptions>
-				</configuration>
-
-				<executions>
-					<execution>
-						<id>native-compile</id>
-						<phase>compile</phase>
-						<goals>
-							<goal>initialize</goal>
-							<goal>compile</goal>
-							<goal>link</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
 
 			<!-- resources : re-copy resources after native compile -->
 			<plugin>
@@ -281,11 +144,6 @@
 				<configuration>
 					<source>1.8</source>
 					<target>1.8</target>
-
-					<compilerArgs>
-						<arg>-h</arg>
-						<arg>${project.basedir}/src/main/native/include</arg>
-					</compilerArgs>
 				</configuration>
 			</plugin>
 
