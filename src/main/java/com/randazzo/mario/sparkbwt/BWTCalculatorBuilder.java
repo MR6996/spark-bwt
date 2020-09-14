@@ -9,13 +9,13 @@ import java.io.File;
 import java.nio.file.Paths;
 
 /**
- * Builder for class {@code BWT}.
+ * Builder for class {@code BWTCalculator}.
  *
  * @author Mario Randazzo
  */
-public class BWTBuilder {
+public class BWTCalculatorBuilder {
 
-    private static final Log LOG = LogFactory.getLog(BWTBuilder.class);
+    private static final Log LOG = LogFactory.getLog(BWTCalculatorBuilder.class);
 
     private File inputFile;
 
@@ -24,15 +24,17 @@ public class BWTBuilder {
     private String workingDirectory;
     //private int startIdx;
     //private int endIdx;
+    private int k;
+    private CalculatorType type;
     private boolean verbose;
 
     /**
-     * Build a Builder for {@code BWT} class from the input file specified.
+     * Build a Builder for {@code BWTCalculator} class from the input file specified.
      *
      * @param inputFilePath a path to the input file.
      * @throws IllegalArgumentException if the inputFilePath are not valid.
      */
-    public BWTBuilder(String inputFilePath) throws IllegalArgumentException {
+    public BWTCalculatorBuilder(String inputFilePath) throws IllegalArgumentException {
         inputFile = new File(inputFilePath);
 
         /*if (!inputFile.isFile())
@@ -43,19 +45,20 @@ public class BWTBuilder {
         this.workingDirectory = "";
         //this.startIdx = 0;
         //this.endIdx = -1;
+        this.type = CalculatorType.ITERATIVE;
         this.verbose = false;
 
         LOG.info("Initialized builder for: " + inputFilePath);
     }
 
     /**
-     * Build a Builder for {@code BWT} class from the input file specified and the working directory specified.
+     * Build a Builder for {@code BWTCalculator} class from the input file specified and the working directory specified.
      *
      * @param workingDirectory a path to a directory.
      * @param inputPath        a path to the input file.
      * @throws IllegalArgumentException if {@code workingDirectory} is not a directory.
      */
-    public BWTBuilder(String workingDirectory, String inputPath) throws IllegalArgumentException {
+    public BWTCalculatorBuilder(String workingDirectory, String inputPath) throws IllegalArgumentException {
         this(Paths.get(workingDirectory, inputPath).toString());
 
         if (!new File(workingDirectory).isDirectory())
@@ -71,7 +74,7 @@ public class BWTBuilder {
      * @param outputFilePath a path to the outfile.
      * @return this builder.
      */
-    public BWTBuilder setOutputFilePath(String outputFilePath) {
+    public BWTCalculatorBuilder setOutputFilePath(String outputFilePath) {
         LOG.info("Setting output file path: " + outputFilePath);
 
         this.outputFilePath = outputFilePath;
@@ -114,8 +117,34 @@ public class BWTBuilder {
         return this;
     }*/
 
+    /**
+     *  Set the value of k in the algorithm.
+     *
+     * @param k a positive integer.
+     * @return this builder.
+     * @throws IllegalArgumentException if k are not valid value, must be positive.
+     */
+    public BWTCalculatorBuilder setK(int k) throws IllegalArgumentException {
+        LOG.info("Setting k value: " + k);
 
-    public BWTBuilder setVerbose(boolean verbose) {
+        if(k < 1)  throw new IllegalArgumentException("k must be positive.");
+        this.k = k;
+        return this;
+    }
+
+    public BWTCalculatorBuilder setCalculatorType(String name) {
+        LOG.info("Setting calculator type to: " + name);
+
+        try {
+            this.type = CalculatorType.valueOf(name.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Unknown calculator type " + name);
+        }
+
+        return this;
+    }
+
+    public BWTCalculatorBuilder setVerbose(boolean verbose) {
         LOG.info("Setting verbose mode to: " + verbose);
 
         this.verbose = verbose;
@@ -123,14 +152,15 @@ public class BWTBuilder {
     }
 
     /**
-     * Build the {@code BWT} object.
+     * Build the {@code BWTCalculator} object.
      *
-     * @return a {@code BWT} built from the option specified.
+     * @return a {@code BWTCalculator} built from the option specified.
      */
-    public BWT build() {
+    public BWTCalculator build() {
         SparkSession session = new SparkSession.Builder()
                 .appName(String.format(
-                        "SparkBWT - %s",
+                        "SparkBWT[%s] - %s",
+                        this.type,
                         lastOf(inputFilePath.split("[\\\\/]"))
                 ))
                 .config("spark.hadoop.validateOutputSpecs", false)
@@ -141,8 +171,16 @@ public class BWTBuilder {
 
         if (!verbose) sc.setLogLevel("ERROR");
 
-        return new BWT(session, verbose, inputFilePath,
-                Paths.get(workingDirectory, outputFilePath).toString());
+        switch (this.type) {
+            case ITERATIVE:
+                return new IterativeBWTCalculator(session, verbose, inputFilePath,
+                        Paths.get(workingDirectory, outputFilePath).toString());
+            case NAIVE:
+                return new NaiveBWTCalculator(session, verbose, inputFilePath,
+                        Paths.get(workingDirectory, outputFilePath).toString(), k);
+            default:
+                throw new IllegalStateException("Calculator type is not valid!");
+        }
     }
 
     private static <T> T lastOf(T[] v) {

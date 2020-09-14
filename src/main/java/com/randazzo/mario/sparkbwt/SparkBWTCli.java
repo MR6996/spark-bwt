@@ -22,11 +22,13 @@ public class SparkBWTCli {
     private static final String DIRECTORY_OPT = "d";
     //private static final String START_INDEX_OPT = "s";
     //private static final String END_INDEX_OPT = "e";
+    private static final String K_LENGTH_OPT = "k";
+    private static final String TYPE_OPT = "t";
     private static final String VERBOSE_OPT = "v";
 
     private boolean help;
 
-    private BWTBuilder bwtBuilder;
+    private BWTCalculatorBuilder bwtCalculatorBuilder;
     private CommandLine cmd;
     private Options opts;
 
@@ -86,6 +88,26 @@ public class SparkBWTCli {
                 .build();
         opts.addOption(endIndexOpt);*/
 
+        Option kLengthOpt = Option.builder(K_LENGTH_OPT)
+                .longOpt("kLength")
+                .hasArg(true)
+                .required(false)
+                .desc("Specify the length of k-mers in the algorithm. Default value is 3, " +
+                        "the value must be positive.")
+                .argName("length")
+                .build();
+        opts.addOption(kLengthOpt);
+
+        Option typeOpt = Option.builder(TYPE_OPT)
+                .longOpt("type")
+                .hasArg(true)
+                .required(false)
+                .desc("Set the type of the algorithm to use for calculation. " +
+                        "Valid value are: iterative, naive. Default value is iterative")
+                .argName("type")
+                .build();
+        opts.addOption(typeOpt);
+
         Option verboseOpt = Option.builder(VERBOSE_OPT)
                 .longOpt("verbose")
                 .hasArg(false)
@@ -112,16 +134,16 @@ public class SparkBWTCli {
             MissingOptionException, IndexOutOfBoundsException {
 
         if (cmd.hasOption(DIRECTORY_OPT))
-            bwtBuilder = new BWTBuilder(cmd.getOptionValue(DIRECTORY_OPT), getInputPath());
+            bwtCalculatorBuilder = new BWTCalculatorBuilder(cmd.getOptionValue(DIRECTORY_OPT), getInputPath());
         else
-            bwtBuilder = new BWTBuilder(getInputPath());
+            bwtCalculatorBuilder = new BWTCalculatorBuilder(getInputPath());
 
 
         if (cmd.hasOption(HELP_OPT))
             help = true;
 
         if (cmd.hasOption(OUTPUT_OPT))
-            bwtBuilder.setOutputFilePath(cmd.getOptionValue(OUTPUT_OPT));
+            bwtCalculatorBuilder.setOutputFilePath(cmd.getOptionValue(OUTPUT_OPT));
 
         /*if (cmd.hasOption(START_INDEX_OPT))
             bwtBuilder.setStartIndex(Integer.parseInt(cmd.getOptionValue(START_INDEX_OPT)));
@@ -129,8 +151,14 @@ public class SparkBWTCli {
         if (cmd.hasOption(END_INDEX_OPT))
             bwtBuilder.setEndIndex(Integer.parseInt(cmd.getOptionValue(END_INDEX_OPT)));*/
 
+        if(cmd.hasOption(K_LENGTH_OPT))
+            bwtCalculatorBuilder.setK(Integer.parseInt(cmd.getOptionValue(K_LENGTH_OPT)));
+
+        if (cmd.hasOption(TYPE_OPT))
+            bwtCalculatorBuilder.setCalculatorType(cmd.getOptionValue(TYPE_OPT));
+
         if (cmd.hasOption(VERBOSE_OPT))
-            bwtBuilder.setVerbose(true);
+            bwtCalculatorBuilder.setVerbose(true);
 
     }
 
@@ -188,12 +216,12 @@ public class SparkBWTCli {
 
 
     /**
-     * Build a {@code BWT} with the option parsed from command line.
+     * Build a {@code BWTCalculator} with the option parsed from command line.
      *
-     * @return a {@code BWT}
+     * @return a {@code BWTCalculator}
      */
-    public BWT getBuiltBWT() {
-        return bwtBuilder.build();
+    public BWTCalculator getBuiltBWTCalculator() {
+        return bwtCalculatorBuilder.build();
     }
 
 }

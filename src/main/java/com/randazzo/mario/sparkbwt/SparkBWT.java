@@ -22,7 +22,7 @@ public class SparkBWT {
             if (cli.isHelp())
                 cli.printHelpMessage();
             else
-                cli.getBuiltBWT().run();
+                cli.getBuiltBWTCalculator().run();
 
         } catch (MissingOptionException e) {
             cli.printHelpMessage("Missing parameter.");

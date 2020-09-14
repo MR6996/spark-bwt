@@ -11,7 +11,7 @@ class BWTTest {
     @Test
     def run() {
         val path = getClass.getResource("/test.txt").getFile
-        val bwt = new BWTBuilder(path).build
+        val bwt = new BWTCalculatorBuilder(path).build
 
         bwt.run()
         println("Checking inverse bwt...")
