@@ -45,6 +45,7 @@ public class BWTCalculatorBuilder {
         this.workingDirectory = "";
         //this.startIdx = 0;
         //this.endIdx = -1;
+        this.k = 3;
         this.type = CalculatorType.ITERATIVE;
         this.verbose = false;
 
@@ -175,8 +176,11 @@ public class BWTCalculatorBuilder {
             case ITERATIVE:
                 return new IterativeBWTCalculator(session, verbose, inputFilePath,
                         Paths.get(workingDirectory, outputFilePath).toString());
+            case RADIX:
+                return new NaiveRadixBWTCalculator(session, verbose, inputFilePath,
+                        Paths.get(workingDirectory, outputFilePath).toString(), k);
             case NAIVE:
-                return new NaiveBWTCalculator(session, verbose, inputFilePath,
+                return new NaiveSortBWTCalculator(session, verbose, inputFilePath,
                         Paths.get(workingDirectory, outputFilePath).toString(), k);
             default:
                 throw new IllegalStateException("Calculator type is not valid!");

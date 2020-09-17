@@ -8,11 +8,11 @@ import org.apache.spark.{Partitioner, RangePartitioner}
 
 import scala.io.{BufferedSource, Source}
 
-class NaiveBWTCalculator(session: SparkSession,
-                         verbose: Boolean,
-                         inputFilePath: String,
-                         outputFilePath: String,
-                         k: Int)
+abstract class NaiveBWTCalculator(session: SparkSession,
+                             verbose: Boolean,
+                             inputFilePath: String,
+                             outputFilePath: String,
+                             k: Int)
     extends BWTCalculator(session, verbose, inputFilePath, outputFilePath) {
 
     var bS: Broadcast[String] = _
@@ -21,7 +21,7 @@ class NaiveBWTCalculator(session: SparkSession,
     override def calculate(): Unit = {
         // Load and broadcast input string
         val source: BufferedSource = Source.fromFile(inputFilePath)
-        val inputString: String = source.getLines().next()
+        val inputString: String = source.getLines().mkString
         val inputStringLength: Int = inputString.length
 
         bS = sc.broadcast(inputString)
@@ -35,7 +35,7 @@ class NaiveBWTCalculator(session: SparkSession,
 
         val sortedIndices = kmers.partitionBy(partitioner)
             .map { case (_, i) => i }
-            .mapPartitions(primitives.sortPartition)
+            .mapPartitions(getSortPartitionMethod)
 
         sortedIndices.map(primitives.previous)
             .saveAsHadoopFile[BWTOutputFormat](outputFilePath)
@@ -43,4 +43,6 @@ class NaiveBWTCalculator(session: SparkSession,
         bS.destroy()
     }
 
+    def getSortPartitionMethod: Iterator[Int] => Iterator[Int]
 }
+

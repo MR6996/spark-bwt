@@ -1,207 +1,331 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-	<modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-	<groupId>com.randazzo.mario</groupId>
-	<artifactId>spark-bwt</artifactId>
-	<version>0.2.1</version>
+    <groupId>com.randazzo.mario</groupId>
+    <artifactId>spark-bwt</artifactId>
+    <version>0.2.1</version>
 
-	<name>SparkBWT</name>
-	<description>Burros-Wheeler transform calculation in Map-Reduce fashion.</description>
-
-
-	<properties>
-		<encoding>UTF-8</encoding>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
-		<native.path>${project.basedir}/src/main/native</native.path>
-	</properties>
+    <name>SparkBWT</name>
+    <description>Burros-Wheeler transform calculation in Map-Reduce fashion.</description>
 
 
-	<repositories>
-		<repository>
-			<id>jitpack.io</id>
-			<url>https://jitpack.io</url>
-		</repository>
-	</repositories>
+    <properties>
+        <encoding>UTF-8</encoding>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <native.path>${project.basedir}/src/main/native</native.path>
+    </properties>
+
+    <profiles>
+
+        <profile>
+            <id>windows</id>
+            <properties>
+                <os.name>win32</os.name>
+                <lib.name>partial.dll</lib.name>
+                <compiler>x86_64-w64-mingw32-g++</compiler>
+                <cmake.generator>"MinGW Makefiles"</cmake.generator>
+                <make>mingw32-make</make>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>linux</id>
+            <properties>
+                <os.name>linux</os.name>
+                <lib.name>partial.so</lib.name>
+                <compiler>g++</compiler>
+                <cmake.generator>Unix Makefiles</cmake.generator>
+                <make>make</make>
+            </properties>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+        </profile>
+
+    </profiles>
 
 
-
-	<dependencies>
-
-		<dependency>
-			<groupId>commons-cli</groupId>
-			<artifactId>commons-cli</artifactId>
-			<version>1.4</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.spark</groupId>
-			<artifactId>spark-core_2.11</artifactId>
-			<version>2.3.3</version>
-			<exclusions>
-				<exclusion>
-					<groupId>commons-cli</groupId>
-					<artifactId>commons-cli</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.spark</groupId>
-			<artifactId>spark-sql_2.11</artifactId>
-			<version>2.3.3</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.json4s</groupId>
-			<artifactId>json4s-core_2.11</artifactId>
-			<version>3.6.7</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.github.adamheinrich</groupId>
-			<artifactId>native-utils</artifactId>
-			<version>e6a394896</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.scala-lang.modules</groupId>
-			<artifactId>scala-xml_2.11</artifactId>
-			<version>1.2.0</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.junit.jupiter</groupId>
-			<artifactId>junit-jupiter-engine</artifactId>
-			<version>5.4.2</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.12</version>
-			<scope>test</scope>
-		</dependency>
-
-	</dependencies>
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
 
 
+    <dependencies>
 
-	<build>
+        <dependency>
+            <groupId>commons-cli</groupId>
+            <artifactId>commons-cli</artifactId>
+            <version>1.4</version>
+        </dependency>
 
-		<plugins>
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-core_2.11</artifactId>
+            <version>2.3.3</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-cli</groupId>
+                    <artifactId>commons-cli</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
 
-			<!-- resources : re-copy resources after native compile -->
-			<plugin>
-				<artifactId>maven-resources-plugin</artifactId>
-				<version>3.1.0</version>
-				<executions>
-					<execution>
-						<id>re-copy-resources</id>
-						<phase>prepare-package</phase>
-						<goals>
-							<goal>resources</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-sql_2.11</artifactId>
+            <version>2.3.3</version>
+        </dependency>
 
-			<!-- scala : -->
-			<plugin>
-				<groupId>net.alchim31.maven</groupId>
-				<artifactId>scala-maven-plugin</artifactId>
-				<version>4.0.2</version>
-				<configuration>
-					<scalaCompatVersion>2.11.8</scalaCompatVersion>
-					<scalaVersion>2.11.8</scalaVersion>
-				</configuration>
-				<executions>
-					<execution>
-						<id>scala-compile-first</id>
-						<phase>process-resources</phase>
-						<goals>
-							<goal>add-source</goal>
-							<goal>compile</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>scala-test-compile</id>
-						<phase>process-test-resources</phase>
-						<goals>
-							<goal>testCompile</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
+        <dependency>
+            <groupId>org.json4s</groupId>
+            <artifactId>json4s-core_2.11</artifactId>
+            <version>3.6.7</version>
+        </dependency>
 
-			<!-- compiler : -->
-			<plugin>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.8.0</version>
-				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
-				</configuration>
-			</plugin>
+        <dependency>
+            <groupId>com.github.adamheinrich</groupId>
+            <artifactId>native-utils</artifactId>
+            <version>e6a394896</version>
+        </dependency>
 
-			<!-- shade :  -->
+        <dependency>
+            <groupId>org.scala-lang.modules</groupId>
+            <artifactId>scala-xml_2.11</artifactId>
+            <version>1.2.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>5.4.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+
+    <build>
+
+        <plugins>
+
+			<!-- antrun : native-clean and sais build -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>2.4.3</version>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.7</version>
+
 				<executions>
 					<execution>
-						<phase>package</phase>
+						<id>native-clean</id>
+						<phase>clean</phase>
 						<goals>
-							<goal>shade</goal>
+							<goal>run</goal>
 						</goals>
 						<configuration>
-							<!-- Include jar -->
-							<artifactSet>
-								<includes>
-									<include>com.github.adamheinrich:native-utils</include>
-									<include>commons-cli:commons-cli</include>
-								</includes>
-							</artifactSet>
-
-							<transformers>
-								<!-- Set main class -->
-								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<mainClass>com.randazzo.mario.sparkbwt.SparkBWT</mainClass>
-								</transformer>
-								<!-- Avoid LICENSE file duplicate -->
-								<transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer">
-								</transformer>
-							</transformers>
-
-							<!-- Relocation for resolve conflict for commons-cli -->
-							<relocations>
-								<relocation>
-									<pattern>org.apache.commons.cli</pattern>
-									<shadedPattern>org.shaded.commons.cli</shadedPattern>
-								</relocation>
-							</relocations>
+							<exportAntProperties>true</exportAntProperties>
+							<target>
+								<echo message = "Cleaning native code"/>
+								<delete dir="${project.basedir}/src/main/native/include" />
+								<delete file="${project.basedir}/src/main/resources/${lib.name}" />
+							</target>
 
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
 
-			<!-- Junit -->
+			<!-- native : sapartial build -->
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>3.0.0-M3</version>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>native-maven-plugin</artifactId>
+				<version>1.0-alpha-9</version>
+
+				<extensions>true</extensions>
 				<configuration>
-					<skipTests>true</skipTests>
+					<javahOS>${os.name}</javahOS>
+
+					<sources>
+						<source>
+							<directory>${native.path}</directory>
+							<fileNames>
+								<fileName>partial.cpp</fileName>
+							</fileNames>
+						</source>
+						<source>
+							<directory>${native.path}/include</directory>
+						</source>
+					</sources>
+
+					<compilerProvider>generic-classic</compilerProvider>
+					<compilerExecutable>${compiler}</compilerExecutable>
+
+					<compilerStartOptions>
+						<compilerStartOption>-m64</compilerStartOption>
+						<compilerStartOption>-fpic</compilerStartOption>
+						<compilerStartOption>-Wall</compilerStartOption>
+						<compilerStartOption>-Wextra</compilerStartOption>
+						<compilerStartOption>-ansi</compilerStartOption>
+						<compilerStartOption>-g</compilerStartOption>
+						<compilerStartOption>-O3</compilerStartOption>
+					</compilerStartOptions>
+
+					<linkerOutputDirectory>target</linkerOutputDirectory>
+					<linkerExecutable>${compiler}</linkerExecutable>
+
+					<linkerStartOptions>
+						<linkerStartOption>-m64</linkerStartOption>
+						<linkerStartOption>-shared</linkerStartOption>
+					</linkerStartOptions>
+
+					<linkerFinalName>partial</linkerFinalName>
+
+					<linkerEndOptions>
+						<linkerEndOption>-L${native.path}/sais/build/lib</linkerEndOption>
+						<linkerEndOption>-o ${project.basedir}/src/main/resources/${lib.name}</linkerEndOption>
+					</linkerEndOptions>
 				</configuration>
+
+				<executions>
+					<execution>
+						<id>native-compile</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>initialize</goal>
+							<goal>compile</goal>
+							<goal>link</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 
-		</plugins>
+			<!-- resources : re-copy resources after native compile -->
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>re-copy-resources</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>resources</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
 
-	</build>
+            <!-- scala : -->
+            <plugin>
+                <groupId>net.alchim31.maven</groupId>
+                <artifactId>scala-maven-plugin</artifactId>
+                <version>4.0.2</version>
+                <configuration>
+                    <scalaCompatVersion>2.11.8</scalaCompatVersion>
+                    <scalaVersion>2.11.8</scalaVersion>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>scala-compile-first</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>scala-test-compile</id>
+                        <phase>process-test-resources</phase>
+                        <goals>
+                            <goal>testCompile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- compiler : -->
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.0</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+
+                    <compilerArgs>
+                        <arg>-h</arg>
+                        <arg>${project.basedir}/src/main/native/include</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
+
+            <!-- shade :  -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>2.4.3</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <!-- Include jar -->
+                            <artifactSet>
+                                <includes>
+                                    <include>com.github.adamheinrich:native-utils</include>
+                                    <include>commons-cli:commons-cli</include>
+                                </includes>
+                            </artifactSet>
+
+                            <transformers>
+                                <!-- Set main class -->
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>com.randazzo.mario.sparkbwt.SparkBWT</mainClass>
+                                </transformer>
+                                <!-- Avoid LICENSE file duplicate -->
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer">
+                                </transformer>
+                            </transformers>
+
+                            <!-- Relocation for resolve conflict for commons-cli -->
+                            <relocations>
+                                <relocation>
+                                    <pattern>org.apache.commons.cli</pattern>
+                                    <shadedPattern>org.shaded.commons.cli</shadedPattern>
+                                </relocation>
+                            </relocations>
+
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Junit -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.0.0-M3</version>
+                <configuration>
+                    <skipTests>true</skipTests>
+                </configuration>
+            </plugin>
+
+        </plugins>
+
+    </build>
 
 </project>
