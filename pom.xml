@@ -6,7 +6,7 @@
 
     <groupId>com.randazzo.mario</groupId>
     <artifactId>spark-bwt</artifactId>
-    <version>0.2.1</version>
+    <version>1.0.0</version>
 
     <name>SparkBWT</name>
     <description>Burros-Wheeler transform calculation in Map-Reduce fashion.</description>
